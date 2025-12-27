@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Alex Resume Dec 2025 | Senior AI Full Stack Engineer</title>
+  <title>Alex Resume Dec 2025 | Senior Full Stack / Front End Engineer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -39,7 +39,7 @@
     .page {
       background: rgba(9, 10, 20, 0.98);
       border-radius: 18px;
-      max-width: 960px;
+      max-width: 980px;
       width: 100%;
       box-shadow:
         0 22px 60px rgba(0, 0, 0, 0.75),
@@ -87,7 +87,7 @@
     }
 
     .tagline {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--accent);
       font-weight: 600;
       text-transform: uppercase;
@@ -98,7 +98,7 @@
     .summary {
       font-size: 13px;
       color: var(--text-muted);
-      max-width: 520px;
+      max-width: 560px;
     }
 
     .contact {
@@ -122,11 +122,11 @@
 
     main {
       display: grid;
-      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.2fr);
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.25fr);
       gap: 24px;
     }
 
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
       main {
         grid-template-columns: 1fr;
       }
@@ -140,7 +140,7 @@
     }
 
     h2.section-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
@@ -150,12 +150,12 @@
     }
 
     .section {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .experience-item {
       margin-bottom: 12px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       border-radius: 10px;
       background: linear-gradient(135deg, rgba(10, 12, 28, 0.9), rgba(10, 14, 34, 0.98));
       border: 1px solid rgba(106, 114, 168, 0.22);
@@ -165,7 +165,7 @@
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       align-items: baseline;
     }
 
@@ -188,14 +188,14 @@
 
     .exp-summary {
       font-size: 12px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       color: var(--text-muted);
     }
 
     ul.bullets {
       list-style: none;
       padding-left: 0;
-      margin-top: 4px;
+      margin: 4px 0 0;
     }
 
     ul.bullets li {
@@ -203,7 +203,7 @@
       padding-left: 13px;
       font-size: 11.5px;
       color: var(--text-main);
-      margin-bottom: 3px;
+      margin-bottom: 4px;
     }
 
     ul.bullets li::before {
@@ -218,7 +218,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     .pill {
@@ -231,8 +231,9 @@
       white-space: nowrap;
     }
 
+    .edu-item,
     .strengths-block,
-    .edu-item {
+    .skills-block {
       font-size: 12px;
       color: var(--text-muted);
     }
@@ -257,7 +258,6 @@
       color: var(--text-muted);
     }
 
-    /* Download button */
     .toolbar {
       display: flex;
       justify-content: flex-end;
@@ -297,7 +297,6 @@
       box-shadow: 0 4px 14px rgba(12, 14, 40, 0.8);
     }
 
-    /* Print-specific layout: high contrast, black on white, controlled breaks */
     @page {
       size: A4;
       margin: 0.5in;
@@ -329,8 +328,6 @@
       .download-btn {
         display: none !important;
       }
-
-      /* Header band with background color */
       header {
         border-bottom: none;
         padding: 10px 0 8px;
@@ -344,8 +341,6 @@
       .contact {
         color: #000000 !important;
       }
-
-      /* Section titles with background stripes */
       h2.section-title {
         background-color: #d3daf0 !important;
         color: #000000 !important;
@@ -353,17 +348,14 @@
         margin: 10px 0 6px;
         page-break-after: avoid;
       }
-
       .section {
         page-break-inside: avoid;
       }
-
       .experience-item {
         background: #ffffff !important;
         border: 1px solid #000000 !important;
         page-break-inside: avoid;
       }
-
       .exp-role,
       .exp-company,
       .exp-meta,
@@ -372,14 +364,13 @@
       .edu-item,
       .strengths-block,
       .strengths-label,
-      .strengths-group {
+      .strengths-group,
+      .skills-block {
         color: #000000 !important;
       }
-
       ul.bullets li::before {
         color: #000000 !important;
       }
-
       .pill-row {
         gap: 4px;
       }
@@ -389,13 +380,10 @@
         color: #000000 !important;
         page-break-inside: avoid;
       }
-
       a {
         color: #000000 !important;
         text-decoration: none !important;
       }
-
-      /* Avoid orphaned lines */
       p, li {
         orphans: 2;
         widows: 2;
@@ -415,14 +403,13 @@
 
       <header>
         <div class="name-block">
-          <div class="tagline">Senior AI Full Stack Engineer</div>
+          <div class="tagline">Senior Full Stack / Front End Engineer</div>
           <h1 class="name">Alex Tannenbaum</h1>
           <p class="summary">
-            15+ years building and scaling full stack web platforms and data-intensive systems across fintech, healthcare,
-            and enterprise environments. Hands-on leader with deep experience in TypeScript, Node.js, React, SQL, and
-            cloud-native microservices, plus AI-driven automation and LLM-powered workflows. Comfortable owning the
-            full lifecycle of high-availability platforms—from architecture and APIs to AI integration, observability,
-            and production support.
+            15+ years delivering full stack and front-end web platforms for fintech, healthcare, and enterprise teams.
+            Product-minded engineer with deep experience in React, TypeScript, Node.js, and scalable APIs, plus AI-driven
+            automation and data-rich dashboards. Known for owning the full lifecycle—architecture, UI, APIs, testing,
+            deployment, and production support.
           </p>
         </div>
         <div class="contact">
@@ -431,7 +418,7 @@
           <div>Portfolio: <a href="https://alext.io" target="_blank" rel="noreferrer">AlexT.io</a></div>
           <div>LinkedIn: <a href="https://www.linkedin.com/in/alexandertannenbaum" target="_blank" rel="noreferrer">/alexandertannenbaum</a></div>
           <div>GitHub: <a href="https://github.com/StarShows" target="_blank" rel="noreferrer">@StarShows</a></div>
-          <div>7545 Hampton Ave, Unit 308, West Hollywood, CA 90046</div>
+          <div>West Hollywood, CA · Open to Remote (CST)</div>
         </div>
       </header>
 
@@ -442,60 +429,39 @@
           <article class="experience-item">
             <div class="exp-header">
               <div>
-                <div class="exp-role">Sr. Lead Solutions Engineer (Full Stack Development + Big Data Architecture)</div>
+                <div class="exp-role">Sr. Lead Solutions Engineer (Full Stack Development + Data Platforms)</div>
                 <div class="exp-company">The Walt Disney Company</div>
               </div>
               <div class="exp-meta">2024 – Present · Remote & Burbank, CA</div>
             </div>
             <p class="exp-summary">
-              Act as technical lead from project inception through delivery, driving architecture, hands-on development,
-              and deployment for enterprise-scale solutions.
+              Technical lead from project discovery through delivery for compliance, security, and operational platforms.
             </p>
             <ul class="bullets">
               <li>
-                Architect and implement platforms using <strong>MERN</strong> (MongoDB, Express, React, Node.js) alongside Python,
-                SQL, and <strong>TypeScript</strong>, integrating cloud-native services across <strong>AWS</strong> (Lambda, S3, DynamoDB,
-                API Gateway), <strong>Azure Functions</strong>, and Snowflake for advanced data warehousing.
+                Architect and build MERN + TypeScript platforms with AWS (Lambda, S3, DynamoDB, API Gateway), Azure
+                Functions, and Snowflake for enterprise analytics.
               </li>
               <li>
-                Design and deploy secure, automated ETL pipelines and integrations aligned with <strong>PCI, SOX, GDPR</strong>,
-                and enterprise security standards to ensure data integrity and compliance.
+                Ship AI-driven automations for data validation and anomaly detection, reducing manual reviews and
+                improving data quality for compliance-critical systems.
               </li>
               <li>
-                Lead development of <strong>AI-driven automations</strong> and machine learning workflows, enhancing data validation,
-                anomaly detection, and intelligent reporting across complex business systems.
+                Deliver executive dashboards and reporting that surface security posture and operational health across
+                hundreds of applications.
               </li>
               <li>
-                Deliver real-time dashboards and reporting systems for executive visibility into <strong>security, compliance</strong>,
-                and operational health metrics.
-              </li>
-              <li>
-                Build frameworks for cloud automation (AWS Lambda, Azure Functions, ServiceNow APIs, Airtable integrations)
-                that reduce manual workflows and increase system reliability.
-              </li>
-              <li>
-                Oversee the full SDLC: requirements gathering, architecture design, coding, <strong>CI/CD</strong> pipelines, testing,
-                and documentation using modern IDEs and DevOps practices.
-              </li>
-              <li>
-                Mentor engineers and collaborate with product owners, security teams, and business stakeholders to ensure
-                technical execution meets strategic goals.
-              </li>
-              <li>
-                Consistently deliver measurable results such as reduced processing errors, improved system scalability,
-                and accelerated release velocity for enterprise initiatives.
+                Standardize serverless frameworks, logging, auth, and CI/CD to improve reliability and deployment speed.
               </li>
             </ul>
             <div class="pill-row">
               <span class="pill">TypeScript</span>
-              <span class="pill">Node.js</span>
               <span class="pill">React</span>
-              <span class="pill">AWS & Azure</span>
-              <span class="pill">Serverless</span>
+              <span class="pill">Node.js</span>
+              <span class="pill">AWS / Azure</span>
               <span class="pill">Snowflake</span>
-              <span class="pill">ServiceNow / Airtable</span>
+              <span class="pill">Serverless</span>
               <span class="pill">AI Automation</span>
-              <span class="pill">CI/CD</span>
             </div>
           </article>
 
@@ -508,33 +474,21 @@
               <div class="exp-meta">2023 – 2024 · Remote & Newport Beach, CA</div>
             </div>
             <p class="exp-summary">
-              Enhanced digital products for web and mobile platforms, delivering secure and efficient hospital systems.
+              Built secure web and mobile experiences for patient and internal hospital systems.
             </p>
             <ul class="bullets">
               <li>
-                Developed full-stack projects with JavaScript, TypeScript, Node.js, React, and AWS to ensure secure,
-                optimized performance.
+                Developed React + TypeScript features for appointment booking, secure file upload, and real-time
+                dashboards.
               </li>
               <li>
-                Built backend services including RESTful APIs and data management with AWS Lambda, Node.js, and PostgreSQL.
+                Built REST services with Node.js, AWS Lambda, and PostgreSQL, emphasizing observability and performance.
               </li>
               <li>
-                Provided on-demand technical support for live products, collaborating across product, IT, and cybersecurity
-                teams using JIRA, GitHub, and CI/CD pipelines.
+                Integrated Epic EHR workflows via Cloverleaf and Lambda adapters, aligned with HIPAA requirements.
               </li>
               <li>
-                Managed data models with MySQL and PostgreSQL for secure file upload, appointment booking, and dashboards.
-              </li>
-              <li>
-                Integrated EHR systems like Epic using Cloverleaf and Lambda for seamless data exchange.
-              </li>
-              <li>
-                Updated and expanded documentation, mentored offsite teams, and upheld test-driven development with
-                <strong>Jest</strong> and <strong>Cypress</strong>.
-              </li>
-              <li>
-                Enhanced digital capabilities with AWS serverless architectures, Terraform, and services like Stripe,
-                Sentry, and Twilio.
+                Maintained CI/CD pipelines and quality gates with Jest and Cypress.
               </li>
             </ul>
             <div class="pill-row">
@@ -542,8 +496,7 @@
               <span class="pill">TypeScript</span>
               <span class="pill">Node.js</span>
               <span class="pill">AWS Lambda</span>
-              <span class="pill">PostgreSQL / MySQL</span>
-              <span class="pill">Healthcare & Compliance</span>
+              <span class="pill">PostgreSQL</span>
               <span class="pill">Jest / Cypress</span>
             </div>
           </article>
@@ -557,38 +510,27 @@
               <div class="exp-meta">2019 – 2023 · Remote & New York, NY</div>
             </div>
             <p class="exp-summary">
-              Focused technology partner elevating revenue and efficiency through scalable web platforms and automation.
+              Full stack lead for regulated-industry platforms and analytics tooling.
             </p>
             <ul class="bullets">
               <li>
-                Built a HIPAA-compliant <strong>Express / React / Sequelize</strong> platform and custom CMS with auth and
-                drag-and-drop workflows.
+                Built HIPAA-compliant Express/React/Sequelize platforms with custom CMS, auth, and drag-and-drop content.
               </li>
               <li>
-                Automated integration testing, UI builds, and DB migrations with <strong>Jenkins, Gradle</strong>, and Docker.
+                Automated releases with Jenkins, Gradle, Docker; improved stability and delivery speed across teams.
               </li>
               <li>
-                Created responsive React components and visualizations with <strong>D3.js, Plotly</strong>, and Mapbox, collaborating
-                with design tools like Figma and Zeplin.
+                Delivered data-rich interfaces with D3.js, Plotly, and Mapbox, surfacing KPIs from Tableau/DataDog.
               </li>
               <li>
-                Developed REST routers and endpoints with Express, Sequelize, and SQL, plus Swagger documentation.
-              </li>
-              <li>
-                Implemented integration tests with <strong>Jest, Cypress</strong>, and Mocha, and automated API validation using
-                Python, Airflow DAGs, and Newman.
-              </li>
-              <li>
-                Designed custom dashboards integrating Tableau, DataDog, and SonarQube for real-time corporate insights.
+                Authored API documentation and automated validation with Swagger, Python, Airflow, and Newman.
               </li>
             </ul>
             <div class="pill-row">
               <span class="pill">Express.js</span>
               <span class="pill">React</span>
-              <span class="pill">TypeScript / JS</span>
               <span class="pill">SQL</span>
               <span class="pill">Docker</span>
-              <span class="pill">Jenkins</span>
               <span class="pill">D3.js</span>
               <span class="pill">Airflow</span>
             </div>
@@ -597,135 +539,32 @@
           <article class="experience-item">
             <div class="exp-header">
               <div>
-                <div class="exp-role">Full Stack Engineer</div>
-                <div class="exp-company">Overpass LLC (Contract)</div>
+                <div class="exp-role">Full Stack Engineer (Contract Roles)</div>
+                <div class="exp-company">Overpass · Makeable / CHOP'T · WR1 · Pip's Island</div>
               </div>
-              <div class="exp-meta">2018 – 2019 · New York, NY</div>
+              <div class="exp-meta">2016 – 2019 · New York, NY</div>
             </div>
             <p class="exp-summary">
-              Developed a complex web-based CRM frontend while contributing backend features and UI standardization.
+              Delivered high-traffic consumer and B2B products across front-end systems, Node/Express APIs, and WordPress.
             </p>
             <ul class="bullets">
               <li>
-                Built CRM frontend using <strong>Aurelia.js</strong>, JavaScript, HTML, CSS, and SCSS with responsive components.
+                Built CRM frontends with Aurelia, Angular 2, and React; created responsive UI systems and component
+                libraries.
               </li>
               <li>
-                Created Node.js and Express.js backend methods for CRUD operations with Sequelize.
+                Implemented Node.js/Express and PHP APIs with CRUD, auth, and integrations for mobile and CMS platforms.
               </li>
               <li>
-                Led UI standardization initiatives and authored documentation for team-wide front-end standards.
-              </li>
-              <li>
-                Collaborated in agile ceremonies, partnered with QA, and used Jira/Git flow in a large dev team.
-              </li>
-              <li>
-                Built a living style guide with Storybook.js and collaborated with design leadership on system consistency.
+                Integrated Braintree payments, optimized deployment workflows, and maintained headless WordPress builds.
               </li>
             </ul>
             <div class="pill-row">
-              <span class="pill">Aurelia.js</span>
+              <span class="pill">React / Angular</span>
               <span class="pill">Node.js / Express</span>
-              <span class="pill">Sequelize</span>
-              <span class="pill">Storybook</span>
-              <span class="pill">Jira / Git Flow</span>
-            </div>
-          </article>
-
-          <article class="experience-item">
-            <div class="exp-header">
-              <div>
-                <div class="exp-role">Software Engineer</div>
-                <div class="exp-company">Makeable / CHOP'T Salad Inc (Contract)</div>
-              </div>
-              <div class="exp-meta">2017 – 2018 · New York, NY</div>
-            </div>
-            <p class="exp-summary">
-              Delivered responsive React components and integrated payment flows for high-traffic checkout experiences.
-            </p>
-            <ul class="bullets">
-              <li>
-                Developed responsive, cross-browser React components for the checkout process and translated Zeplin designs
-                into production-ready UI.
-              </li>
-              <li>
-                Integrated the <strong>Braintree</strong> API for payments and coordinated JSON order object architecture.
-              </li>
-              <li>
-                Deployed React builds to high-traffic environments with zero downtime after BrowserStack QA.
-              </li>
-              <li>
-                Shipped production hotfixes and maintained AWS EC2 deployments and menu assets.
-              </li>
-            </ul>
-            <div class="pill-row">
-              <span class="pill">React</span>
+              <span class="pill">WordPress</span>
               <span class="pill">Braintree</span>
               <span class="pill">AWS EC2</span>
-              <span class="pill">BrowserStack</span>
-            </div>
-          </article>
-
-          <article class="experience-item">
-            <div class="exp-header">
-              <div>
-                <div class="exp-role">Full Stack Engineer</div>
-                <div class="exp-company">WR1 Inc (Contract)</div>
-              </div>
-              <div class="exp-meta">2017 · New York, NY</div>
-            </div>
-            <p class="exp-summary">
-              Developed a responsive Angular 2 frontend and integrated a WordPress headless CMS with custom PHP APIs.
-            </p>
-            <ul class="bullets">
-              <li>
-                Built responsive Angular 2 interfaces using TypeScript, CSS, and HTML with cross-browser testing.
-              </li>
-              <li>
-                Configured a self-hosted WordPress headless CMS with custom PHP functionality and CRUD RESTful endpoints.
-              </li>
-              <li>
-                Connected REST endpoints to the Angular frontend and coordinated integrations with iOS backend teams.
-              </li>
-            </ul>
-            <div class="pill-row">
-              <span class="pill">Angular 2</span>
-              <span class="pill">WordPress (Headless)</span>
-              <span class="pill">PHP</span>
-              <span class="pill">REST APIs</span>
-            </div>
-          </article>
-
-          <article class="experience-item">
-            <div class="exp-header">
-              <div>
-                <div class="exp-role">Full Stack Engineer</div>
-                <div class="exp-company">Pip's Island Inc (Contract)</div>
-              </div>
-              <div class="exp-meta">2016 – 2017 · New York, NY</div>
-            </div>
-            <p class="exp-summary">
-              Built and maintained custom WordPress themes and automated site operations for interactive media experiences.
-            </p>
-            <ul class="bullets">
-              <li>
-                Developed custom WordPress themes using JavaScript and CSS animations, integrating Mailchimp and video
-                streaming.
-              </li>
-              <li>
-                Used WordPress as a headless CMS with REST APIs and connected HTML elements to custom fields.
-              </li>
-              <li>
-                Configured and maintained production and development servers, setting up LAMP stacks with Linode.
-              </li>
-              <li>
-                Automated complex tasks with PHP scripts and optimized builds with Gulp.js.
-              </li>
-            </ul>
-            <div class="pill-row">
-              <span class="pill">WordPress</span>
-              <span class="pill">PHP</span>
-              <span class="pill">Linode</span>
-              <span class="pill">Gulp.js</span>
             </div>
           </article>
 
@@ -738,72 +577,61 @@
               <div class="exp-meta">2012 – 2014 · Israel Defense Forces</div>
             </div>
             <p class="exp-summary">
-              Built secure internal web systems for managing sensitive medical data across multiple divisions.
+              Built secure internal web systems managing sensitive medical data across multiple divisions.
             </p>
             <ul class="bullets">
               <li>
-                Developed a secure, custom web-based CRM using <strong>PHP, SQL, HTML, CSS, JavaScript, and Python</strong> to manage
-                high-security medical information.
+                Developed a secure web-based CRM using PHP, SQL, HTML, CSS, JavaScript, and Python.
               </li>
               <li>
-                Implemented internal portals, integrated barcode scanners, label printers, and VoIP hardware.
-              </li>
-              <li>
-                Supported data management systems for the military health division and maintained high-security standards.
+                Integrated barcode scanners, label printers, and VoIP hardware for operational workflows.
               </li>
             </ul>
           </article>
         </section>
 
         <aside class="section" style="margin-top: -4px;">
-          <h2 class="section-title">AI & Full Stack Skills</h2>
-          <div class="strengths-block">
-            <div class="strengths-label">Full Stack & Web</div>
+          <h2 class="section-title">Core Skills</h2>
+          <div class="skills-block">
+            <div class="strengths-label">Front End</div>
             <div class="pill-row">
+              <span class="pill">React</span>
               <span class="pill">TypeScript</span>
               <span class="pill">JavaScript (ES6+)</span>
-              <span class="pill">Node.js</span>
-              <span class="pill">React</span>
               <span class="pill">HTML & CSS</span>
-              <span class="pill">DOM Manipulation</span>
-              <span class="pill">REST APIs</span>
-              <span class="pill">Microservices</span>
+              <span class="pill">Design Systems</span>
+              <span class="pill">D3.js / Plotly</span>
             </div>
 
-            <div class="strengths-label">Backend, Data & Cloud</div>
+            <div class="strengths-label">Full Stack & Backend</div>
             <div class="pill-row">
+              <span class="pill">Node.js</span>
               <span class="pill">Express.js</span>
-              <span class="pill">Python</span>
-              <span class="pill">SQL (PostgreSQL, MySQL, MS SQL)</span>
+              <span class="pill">REST APIs</span>
+              <span class="pill">SQL (Postgres, MySQL)</span>
               <span class="pill">MongoDB</span>
-              <span class="pill">AWS (Lambda, S3, API Gateway)</span>
+              <span class="pill">Serverless</span>
+            </div>
+
+            <div class="strengths-label">Cloud & DevOps</div>
+            <div class="pill-row">
+              <span class="pill">AWS</span>
               <span class="pill">Azure Functions</span>
-              <span class="pill">Serverless Architectures</span>
-              <span class="pill">CI/CD (GitHub Actions, Jenkins)</span>
+              <span class="pill">CI/CD</span>
+              <span class="pill">Docker</span>
+              <span class="pill">Observability</span>
             </div>
 
-            <div class="strengths-label">AI, Automation & Observability</div>
+            <div class="strengths-label">AI & Automation</div>
             <div class="pill-row">
-              <span class="pill">AI-driven Automations</span>
-              <span class="pill">LLM-integrated Workflows</span>
+              <span class="pill">AI Automations</span>
+              <span class="pill">LLM Workflows</span>
               <span class="pill">Prompt Design</span>
-              <span class="pill">Retrieval & Search</span>
-              <span class="pill">Dashboards & Data Viz (D3.js, Plotly)</span>
-              <span class="pill">Monitoring (DataDog, custom dashboards)</span>
-              <span class="pill">Testing (Jest, Cypress)</span>
-            </div>
-
-            <div class="strengths-label">Domain & Ways of Working</div>
-            <div class="pill-row">
-              <span class="pill">Fintech-like & Regulated Environments</span>
-              <span class="pill">PCI / SOX / GDPR / HIPAA</span>
-              <span class="pill">Agile & Scrum</span>
-              <span class="pill">Mentoring & Technical Leadership</span>
-              <span class="pill">Remote-first Collaboration (CST-friendly)</span>
+              <span class="pill">Anomaly Detection</span>
             </div>
           </div>
 
-          <div class="section" style="margin-top: 10px;">
+          <div class="section" style="margin-top: 12px;">
             <h2 class="section-title">Education</h2>
             <div class="edu-item">
               High School Diploma – Computer Science Major<br />
@@ -811,14 +639,13 @@
             </div>
           </div>
 
-          <div class="section" style="margin-top: 10px;">
+          <div class="section" style="margin-top: 12px;">
             <h2 class="section-title">Strengths</h2>
             <div class="strengths-group">
-              <b>Programming Languages:</b> PHP, JavaScript ES5+ES6, Shell, Python, HTML, CSS, SCSS, React, Express,
-              D3.js, Front-End, Back-End, JSON, Agile.
+              <b>Programming:</b> PHP, JavaScript, TypeScript, Shell, Python, HTML, CSS/SCSS, React, Express, D3.js.
             </div>
             <div class="strengths-group">
-              <b>Systems:</b> Linux, Mac OS X, MEAN, MERN, Ubuntu, LEMP, LAMP, Linode, Git, AWS, ChatGPT.
+              <b>Systems:</b> Linux, macOS, MERN, LAMP/LEMP, Linode, Git, AWS, Jira.
             </div>
             <div class="strengths-group">
               <b>Languages:</b> Hebrew (Fluent), English (Fluent).

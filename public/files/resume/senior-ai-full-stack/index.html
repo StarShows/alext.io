@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alex Tannenbaum | Senior AI Full Stack Engineer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #05060a;
+      --bg-elevated: #0e1018;
+      --accent: #4f7dff;
+      --text-main: #f7f7ff;
+      --text-muted: #a5a8c3;
+      --border-subtle: #26293a;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #15182a 0, #05060a 55%);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, -system-ui, sans-serif;
+      color: var(--text-main);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      padding: 32px 12px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .page {
+      background: rgba(9, 10, 20, 0.98);
+      border-radius: 18px;
+      max-width: 960px;
+      width: 100%;
+      box-shadow:
+        0 22px 60px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(255, 255, 255, 0.02);
+      padding: 28px 32px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(79, 125, 255, 0.16), transparent 55%),
+        radial-gradient(circle at 100% 10%, rgba(131, 88, 255, 0.14), transparent 55%);
+      opacity: 0.65;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .page-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+    }
+
+    .name-block {
+      flex: 2;
+    }
+
+    .name {
+      font-size: 32px;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 10px;
+    }
+
+    .summary {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    .contact {
+      flex: 1.4;
+      font-size: 12px;
+      color: var(--text-muted);
+      display: grid;
+      gap: 3px;
+      text-align: right;
+    }
+
+    .contact a {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .contact a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.2fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        text-align: left;
+      }
+      .contact {
+        text-align: left;
+      }
+    }
+
+    h2.section-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      padding: 4px 0;
+    }
+
+    .section {
+      margin-bottom: 14px;
+    }
+
+    .experience-item {
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(10, 12, 28, 0.9), rgba(10, 14, 34, 0.98));
+      border: 1px solid rgba(106, 114, 168, 0.22);
+    }
+
+    .exp-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 4px;
+      align-items: baseline;
+    }
+
+    .exp-role {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .exp-company {
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    .exp-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .exp-summary {
+      font-size: 12px;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    ul.bullets {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 4px;
+    }
+
+    ul.bullets li {
+      position: relative;
+      padding-left: 13px;
+      font-size: 11.5px;
+      color: var(--text-main);
+      margin-bottom: 3px;
+    }
+
+    ul.bullets li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 4px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(143, 149, 204, 0.3);
+      background: rgba(14, 17, 39, 0.9);
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .edu-item, .strengths-block {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .strengths-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 6px;
+      margin-bottom: 2px;
+      color: var(--text-muted);
+    }
+
+    /* Download button */
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 12px;
+    }
+
+    .download-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(106, 125, 255, 0.8);
+      background: radial-gradient(circle at 0 0, rgba(111, 171, 255, 0.35), transparent 55%),
+                  linear-gradient(135deg, rgba(38, 51, 120, 0.95), rgba(83, 58, 180, 0.98));
+      color: #ffffff;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(22, 28, 88, 0.7);
+      border-bottom-width: 2px;
+    }
+
+    .download-btn span.icon {
+      font-size: 14px;
+    }
+
+    .download-btn:hover {
+      filter: brightness(1.05);
+      transform: translateY(-0.5px);
+    }
+
+    .download-btn:active {
+      transform: translateY(0.5px);
+      box-shadow: 0 4px 14px rgba(12, 14, 40, 0.8);
+    }
+
+    /* Print-specific layout: high contrast, black on white, controlled breaks */
+    @page {
+      size: A4;
+      margin: 0.5in;
+    }
+
+    @media print {
+      html, body {
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        padding: 0;
+      }
+      .page {
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border-radius: 0;
+        padding: 0;
+        max-width: 100%;
+      }
+      .page::before {
+        display: none;
+      }
+      .page-inner {
+        padding: 0;
+      }
+      .toolbar,
+      .download-btn {
+        display: none !important;
+      }
+
+      /* Header band with background color */
+      header {
+        border-bottom: none;
+        padding: 10px 0 8px;
+        margin-bottom: 10px;
+        background-color: #e5e9f5 !important;
+        page-break-inside: avoid;
+      }
+      .name,
+      .tagline,
+      .summary,
+      .contact {
+        color: #000000 !important;
+      }
+
+      /* Section titles with background stripes */
+      h2.section-title {
+        background-color: #d3daf0 !important;
+        color: #000000 !important;
+        padding: 4px 6px;
+        margin: 10px 0 6px;
+        page-break-after: avoid;
+      }
+
+      .section {
+        page-break-inside: avoid;
+      }
+
+      .experience-item {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        page-break-inside: avoid;
+      }
+
+      .exp-role,
+      .exp-company,
+      .exp-meta,
+      .exp-summary,
+      ul.bullets li,
+      .edu-item,
+      .strengths-block,
+      .strengths-label {
+        color: #000000 !important;
+      }
+
+      ul.bullets li::before {
+        color: #000000 !important;
+      }
+
+      .pill-row {
+        gap: 4px;
+      }
+      .pill {
+        background: #ffffff !important;
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        page-break-inside: avoid;
+      }
+
+      a {
+        color: #000000 !important;
+        text-decoration: none !important;
+      }
+
+      /* Avoid orphaned lines */
+      p, li {
+        orphans: 2;
+        widows: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-inner">
+      <div class="toolbar">
+        <button class="download-btn" onclick="window.print(); return false;">
+          <span class="icon">⬇️</span>
+          <span>Download PDF</span>
+        </button>
+      </div>
+
+      <header>
+        <div class="name-block">
+          <div class="tagline">Senior AI Full Stack Engineer</div>
+          <h1 class="name">Alex Tannenbaum</h1>
+          <p class="summary">
+            15+ years building and scaling full stack web platforms and data-intensive systems across fintech, healthcare,
+            and enterprise environments. Hands-on leader with deep experience in TypeScript, Node.js, React, SQL, and
+            cloud-native microservices, plus AI-driven automation and LLM-powered workflows. Comfortable owning the
+            full lifecycle of high-availability platforms—from architecture and APIs to AI integration, observability,
+            and production support.
+          </p>
+        </div>
+        <div class="contact">
+          <div>Phone: <a href="tel:+13479688142">+1 347-968-8142</a></div>
+          <div>Email: <a href="mailto:alex@alext.io">alex@alext.io</a></div>
+          <div>Portfolio: <a href="https://alext.io" target="_blank" rel="noreferrer">AlexT.io</a></div>
+          <div>LinkedIn: <a href="https://www.linkedin.com/in/alexandertannenbaum" target="_blank" rel="noreferrer">/alexandertannenbaum</a></div>
+          <div>GitHub: <a href="https://github.com/StarShows" target="_blank" rel="noreferrer">@StarShows</a></div>
+          <div>West Hollywood, CA (Open to Remote CST)</div>
+        </div>
+      </header>
+
+      <main>
+        <section class="section">
+          <h2 class="section-title">Experience</h2>
+
+          <article class="experience-item">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Sr. Lead Solutions Engineer / Sr. Principal Software Engineer</div>
+                <div class="exp-company">The Walt Disney Company</div>
+              </div>
+              <div class="exp-meta">2024 – Present · Remote & Burbank, CA</div>
+            </div>
+            <p class="exp-summary">
+              Technical lead for enterprise-scale web, data, and AI platforms supporting compliance, security, and
+              operations across globally distributed business units.
+            </p>
+            <ul class="bullets">
+              <li>
+                Architect and implement full stack solutions using <strong>MERN</strong> (MongoDB, Express, React, Node.js),
+                <strong>TypeScript</strong>, and Python, integrating cloud-native services across <strong>AWS</strong> (Lambda, S3,
+                DynamoDB, API Gateway), <strong>Azure Functions</strong>, and Snowflake for advanced analytics.
+              </li>
+              <li>
+                Lead development of <strong>AI-driven automations</strong> and machine learning workflows that validate data,
+                detect anomalies, and drive intelligent reporting—reducing manual review effort and improving data quality
+                for compliance-critical systems.
+              </li>
+              <li>
+                Design secure ETL pipelines and integrations with platforms like ServiceNow, Airtable, and internal APIs,
+                aligned with <strong>PCI, SOX, GDPR, and HIPAA</strong>-adjacent governance requirements.
+              </li>
+              <li>
+                Build reusable frameworks for <strong>serverless microservices</strong> (AWS Lambda, Azure Functions) that standardize
+                logging, auth, and observability, improving reliability and deployment consistency.
+              </li>
+              <li>
+                Deliver real-time dashboards and semantic-style reporting views used by executives to monitor <strong>security,
+                compliance posture, and operational health</strong> across hundreds of applications.
+              </li>
+              <li>
+                Own SDLC end-to-end: backlog refinement, system design, implementation, <strong>CI/CD</strong> (GitHub Actions, Jenkins),
+                automated testing, and documentation; mentor engineers and partner with product, security, and data teams.
+              </li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill">TypeScript</span>
+              <span class="pill">Node.js</span>
+              <span class="pill">React</span>
+              <span class="pill">AWS & Azure</span>
+              <span class="pill">Serverless</span>
+              <span class="pill">Snowflake</span>
+              <span class="pill">ServiceNow / Airtable</span>
+              <span class="pill">AI Automation</span>
+              <span class="pill">CI/CD</span>
+            </div>
+          </article>
+
+          <article class="experience-item">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Full Stack Engineer</div>
+                <div class="exp-company">Hoag Hospital</div>
+              </div>
+              <div class="exp-meta">2023 – 2024 · Remote & Newport Beach, CA</div>
+            </div>
+            <p class="exp-summary">
+              Built secure, performant web applications and APIs underpinning patient-facing and internal hospital systems.
+            </p>
+            <ul class="bullets">
+              <li>
+                Developed full stack features with <strong>React, TypeScript, Node.js, and AWS</strong>, including appointment booking,
+                secure file upload, and real-time data dashboards.
+              </li>
+              <li>
+                Designed and implemented RESTful microservices using <strong>Node.js</strong>, AWS Lambda, and PostgreSQL, focusing on
+                performance, observability, and fault tolerance.
+              </li>
+              <li>
+                Partnered with cybersecurity and infrastructure teams to ensure architectures met <strong>HIPAA</strong> and
+                enterprise security standards.
+              </li>
+              <li>
+                Integrated EHR systems such as Epic using Cloverleaf and custom Lambda-based adapters to streamline
+                data exchange across systems.
+              </li>
+              <li>
+                Maintained high code quality through <strong>Jest</strong> and <strong>Cypress</strong> tests, code reviews, and CI/CD pipelines.
+              </li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill">React</span>
+              <span class="pill">TypeScript</span>
+              <span class="pill">Node.js</span>
+              <span class="pill">AWS Lambda</span>
+              <span class="pill">PostgreSQL / MySQL</span>
+              <span class="pill">Healthcare & Compliance</span>
+              <span class="pill">Jest / Cypress</span>
+            </div>
+          </article>
+
+          <article class="experience-item">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Sr. Full Stack Engineer</div>
+                <div class="exp-company">McKinsey & Co. (via Elephant Venture)</div>
+              </div>
+              <div class="exp-meta">2019 – 2023 · Remote & New York, NY</div>
+            </div>
+            <p class="exp-summary">
+              Full stack lead for high-impact client platforms, combining microservices, data visualization, and automation
+              for regulated industries.
+            </p>
+            <ul class="bullets">
+              <li>
+                Built a HIPAA-compliant <strong>Express / React / Sequelize</strong> platform, including custom CMS, auth, and
+                drag-and-drop content workflows.
+              </li>
+              <li>
+                Automated integration testing, UI builds, and DB migrations with <strong>Jenkins, Gradle, Docker</strong>, and CLI tools,
+                accelerating release velocity for multi-team delivery.
+              </li>
+              <li>
+                Created complex, interactive visualizations using <strong>D3.js, Plotly, and Mapbox</strong>, surfacing KPIs from
+                <strong>Tableau, DataDog, SonarQube</strong>, and other data stores.
+              </li>
+              <li>
+                Designed and documented REST APIs (Swagger), Redux-powered frontends, and backend services in Express
+                and SQL, focusing on clarity, reusability, and maintainability.
+              </li>
+              <li>
+                Automated API validation using <strong>Python, Airflow DAGs, and Newman</strong> to continuously verify contract health
+                and response integrity.
+              </li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill">Express.js</span>
+              <span class="pill">React</span>
+              <span class="pill">TypeScript / JS</span>
+              <span class="pill">SQL</span>
+              <span class="pill">Docker</span>
+              <span class="pill">Jenkins</span>
+              <span class="pill">D3.js</span>
+              <span class="pill">Airflow</span>
+            </div>
+          </article>
+
+          <article class="experience-item">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Full Stack Engineer (Contract Roles)</div>
+                <div class="exp-company">Overpass · Makeable / CHOP'T · WR1 · Pip's Island</div>
+              </div>
+              <div class="exp-meta">2016 – 2019 · New York, NY</div>
+            </div>
+            <p class="exp-summary">
+              Delivered full stack web apps, micro frontends, and CMS-driven experiences for high-traffic consumer and B2B
+              products.
+            </p>
+            <ul class="bullets">
+              <li>
+                Built complex CRM frontends using <strong>Aurelia.js, Angular 2, and React</strong> with responsive, cross-browser UI and
+                reusable design systems / component libraries.
+              </li>
+              <li>
+                Implemented Node.js and Express.js backends with Sequelize and vanilla PHP APIs powering CRUD,
+                authentication, and integration with mobile apps.
+              </li>
+              <li>
+                Integrated <strong>Braintree</strong> for payments, designed JSON schemas for order flows, and deployed React builds
+                to AWS EC2 with zero-downtime cutovers.
+              </li>
+              <li>
+                Created and maintained custom WordPress themes and headless CMS installations, wiring content via
+                REST APIs to JS frontends and interactive marketing sites.
+              </li>
+            </ul>
+            <div class="pill-row">
+              <span class="pill">React / Angular / Aurelia</span>
+              <span class="pill">Node.js / Express</span>
+              <span class="pill">WordPress (Headless)</span>
+              <span class="pill">Braintree</span>
+              <span class="pill">AWS EC2</span>
+              <span class="pill">Micro frontends</span>
+            </div>
+          </article>
+
+          <article class="experience-item">
+            <div class="exp-header">
+              <div>
+                <div class="exp-role">Software Engineer</div>
+                <div class="exp-company">Military – Medical Corps</div>
+              </div>
+              <div class="exp-meta">2012 – 2014 · Israel Defense Forces</div>
+            </div>
+            <p class="exp-summary">
+              Built secure internal web systems for managing sensitive medical data across multiple divisions.
+            </p>
+            <ul class="bullets">
+              <li>
+                Developed a secure, custom web-based CRM using <strong>PHP, SQL, HTML, CSS, JavaScript, and Python</strong> to
+                manage high-security medical information.
+              </li>
+              <li>
+                Implemented internal portals, integrated barcode scanners, label printers, and VoIP hardware, and ensured
+                systems adhered to strict security standards.
+              </li>
+            </ul>
+          </article>
+        </section>
+
+        <aside class="section" style="margin-top: -4px;">
+          <h2 class="section-title">AI & Full Stack Skills</h2>
+          <div class="strengths-block">
+            <div class="strengths-label">Full Stack & Web</div>
+            <div class="pill-row">
+              <span class="pill">TypeScript</span>
+              <span class="pill">JavaScript (ES6+)</span>
+              <span class="pill">Node.js</span>
+              <span class="pill">React</span>
+              <span class="pill">HTML & CSS</span>
+              <span class="pill">DOM Manipulation</span>
+              <span class="pill">REST APIs</span>
+              <span class="pill">Microservices</span>
+            </div>
+
+            <div class="strengths-label">Backend, Data & Cloud</div>
+            <div class="pill-row">
+              <span class="pill">Express.js</span>
+              <span class="pill">Python</span>
+              <span class="pill">SQL (PostgreSQL, MySQL, MS SQL)</span>
+              <span class="pill">MongoDB</span>
+              <span class="pill">AWS (Lambda, S3, API Gateway)</span>
+              <span class="pill">Azure Functions</span>
+              <span class="pill">Serverless Architectures</span>
+              <span class="pill">CI/CD (GitHub Actions, Jenkins)</span>
+            </div>
+
+            <div class="strengths-label">AI, Automation & Observability</div>
+            <div class="pill-row">
+              <span class="pill">AI-driven Automations</span>
+              <span class="pill">LLM-integrated Workflows</span>
+              <span class="pill">Prompt Design</span>
+              <span class="pill">Retrieval & Search</span>
+              <span class="pill">Dashboards & Data Viz (D3.js, Plotly)</span>
+              <span class="pill">Monitoring (DataDog, custom dashboards)</span>
+              <span class="pill">Testing (Jest, Cypress)</span>
+            </div>
+
+            <div class="strengths-label">Domain & Ways of Working</div>
+            <div class="pill-row">
+              <span class="pill">Fintech-like & Regulated Environments</span>
+              <span class="pill">PCI / SOX / GDPR / HIPAA</span>
+              <span class="pill">Agile & Scrum</span>
+              <span class="pill">Mentoring & Technical Leadership</span>
+              <span class="pill">Remote-first Collaboration (CST-friendly)</span>
+            </div>
+          </div>
+
+          <div class="section" style="margin-top: 10px;">
+            <h2 class="section-title">Education</h2>
+            <div class="edu-item">
+              High School Diploma – Computer Science Major<br />
+              Orot Yehuda, Efrat, Israel
+            </div>
+          </div>
+
+          <div class="section" style="margin-top: 10px;">
+            <h2 class="section-title">Languages</h2>
+            <div class="pill-row">
+              <span class="pill">English (Fluent)</span>
+              <span class="pill">Hebrew (Fluent)</span>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

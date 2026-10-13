@@ -10,7 +10,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     permissions:
       contents: write
     steps:
@@ -21,23 +21,13 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24.20.0'
-      - name: Install isolated dependencies
+      - name: Install locked dependencies
         working-directory: ai
-        run: |
-          if test -f package-lock.json; then npm ci --ignore-scripts --no-fund; else npm install --ignore-scripts --no-fund; fi
-      - name: Normalize implementation before locking its dependency baseline
+        run: npm ci --ignore-scripts --no-fund
+      - name: Final implementation-branch formatting
         if: ${{ github.event.pull_request.number == 6 && github.event.pull_request.head.repo.full_name == 'StarShows/alext.io' && github.event.pull_request.head.ref == 'feat/local-ai-assistant' && github.actor == 'StarShows' }}
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('ai/src/app.ts')
-          p.write_text(p.read_text().replace("...reply.getHeaders(), 'content-type':", "...Object.fromEntries(Object.entries(reply.getHeaders())), 'content-type':"))
-          p = Path('ai/widget/widget.js')
-          p.write_text(p.read_text().replace('sending = value; send.disabled = value;', 'sending = value; restart.disabled = value; send.disabled = value;'))
-          PY
-          cd ai
-          node scripts/normalize-bootstrap.mjs
-          ./node_modules/.bin/prettier --write src test widget scripts knowledge *.json
+        working-directory: ai
+        run: ./node_modules/.bin/prettier --write src test widget scripts knowledge docs README.md compose.yml *.json
       - name: Compile and test gateway, transports and website integration
         working-directory: ai
         run: npm test
@@ -53,6 +43,24 @@ jobs:
       - name: Browser, mobile and accessibility tests
         working-directory: ai
         run: npm run test:browser
+      - name: Build and test hardened gateway container
+        working-directory: ai
+        run: sh scripts/container-smoke.sh
+      - name: Validate Compose configuration without starting infrastructure
+        working-directory: ai
+        env:
+          NODE_IMAGE: node:24.20.0-bookworm-slim
+          GATEWAY_IMAGE: alext-ai-ci:smoke
+          OLLAMA_IMAGE: ollama/ollama:0.34.0
+          CLOUDFLARED_IMAGE: cloudflare/cloudflared:2026.10.0
+          OLLAMA_MODEL: fixture:1b
+          OLLAMA_MODEL_DIGEST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          OLLAMA_MEMORY_LIMIT: 2g
+          OLLAMA_CPUS: '1'
+        run: |
+          docker compose config --quiet
+          docker compose config --format json > reports/compose-fixture.json
+          node -e "const c=require('./reports/compose-fixture.json'),a=require('node:assert/strict');for(const s of ['gateway','ollama','tunnel']){a(!c.services[s].ports?.length);a.equal(c.services[s].read_only,true);a(c.services[s].cap_drop.includes('ALL'));}a.equal(c.networks.inference.internal,true);a.deepEqual(Object.keys(c.services.ollama.networks),['inference']);console.log('Compose isolation assertions passed; these are fixture resource values, not owner-approved budgets.');"
       - name: Record verification evidence
         if: always()
         run: |
@@ -67,21 +75,21 @@ jobs:
           name: ai-verification
           path: ai/reports/
           retention-days: 7
-      - name: Commit tested normalization only to the authorized implementation branch
+      - name: Commit tested formatting only to the authorized implementation branch
         if: ${{ success() && github.event.pull_request.number == 6 && github.event.pull_request.head.repo.full_name == 'StarShows/alext.io' && github.event.pull_request.head.ref == 'feat/local-ai-assistant' && github.actor == 'StarShows' }}
         env:
           GH_TOKEN: ${{ github.token }}
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          git add ai/src ai/test ai/widget ai/scripts ai/knowledge ai/package.json ai/package-lock.json ai/tsconfig.json ai/.prettierrc.json
+          git add ai/src ai/test ai/widget ai/scripts ai/knowledge ai/docs ai/README.md ai/compose.yml ai/package.json ai/package-lock.json ai/tsconfig.json ai/.prettierrc.json
           if git diff --cached --quiet; then exit 0; fi
           git diff --cached --name-only | while IFS= read -r path; do
-            case "$path" in ai/src/*|ai/test/*|ai/widget/*|ai/scripts/*|ai/knowledge/*|ai/package.json|ai/package-lock.json|ai/tsconfig.json|ai/.prettierrc.json) ;; *) echo 'Unexpected normalization change'; exit 1;; esac
+            case "$path" in ai/src/*|ai/test/*|ai/widget/*|ai/scripts/*|ai/knowledge/*|ai/docs/*|ai/README.md|ai/compose.yml|ai/package.json|ai/package-lock.json|ai/tsconfig.json|ai/.prettierrc.json) ;; *) echo 'Unexpected normalization change'; exit 1;; esac
           done
           test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
           git config user.name 'alext-ai-ci'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'chore(ai): lock dependencies and normalize tested implementation'
+          git commit -m 'chore(ai): normalize tested operations and release documentation'
           AUTH=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w 0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $AUTH" push origin HEAD:refs/heads/feat/local-ai-assistant

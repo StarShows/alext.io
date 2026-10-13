@@ -1,0 +1,158 @@
+name: alext-ai
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  logging:
+    driver: local
+    options:
+      max-size: 5m
+      max-file: '3'
+services:
+  gateway:
+    <<: *hardening
+    image: ${GATEWAY_IMAGE:?Set a tested local image tag or approved immutable image digest}
+    build:
+      context: .
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:?Pin the approved Node image digest}
+    user: '10001:10001'
+    init: true
+    mem_limit: 512m
+    cpus: 1.0
+    tmpfs: [/tmp:size=16m,noexec,nosuid,nodev,mode=1777]
+    environment:
+      AI_RUNTIME: container
+      PORT: '18080'
+      TRUSTED_TUNNEL_IP: '10.97.0.2'
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:?Choose a local model after hardware discovery}
+      OLLAMA_MODEL_DIGEST: ${OLLAMA_MODEL_DIGEST:?Pin the selected local model}
+      TURNSTILE_SECRET_FILE: /run/secrets/turnstile_secret
+      INFERENCE_CONCURRENCY: '1'
+      INFERENCE_QUEUE_SIZE: '2'
+      QUEUE_WAIT_MS: '5000'
+      REQUEST_TIMEOUT_MS: '60000'
+      MAX_OUTPUT_TOKENS: '600'
+      CONTEXT_TOKENS: '8192'
+      LOG_LEVEL: info
+    secrets: [turnstile_secret]
+    networks:
+      tunnel_link:
+        ipv4_address: 10.97.0.3
+      inference: {}
+      outbound: {}
+    depends_on:
+      ollama:
+        condition: service_started
+    stop_grace_period: 15s
+  ollama:
+    <<: *hardening
+    image: ${OLLAMA_IMAGE:?Pin an approved Ollama image digest}
+    user: '10001:10001'
+    command: [serve]
+    mem_limit: ${OLLAMA_MEMORY_LIMIT:?Set the measured memory budget}
+    cpus: ${OLLAMA_CPUS:?Set the approved CPU budget}
+    tmpfs: [/tmp:size=256m,nosuid,nodev,mode=1777]
+    environment:
+      HOME: /tmp/ollama-home
+      OLLAMA_MODELS: /models
+      # This binds only inside the isolated Linux container, never on the Mac host.
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_NO_CLOUD: '1'
+      OLLAMA_NUM_PARALLEL: '1'
+      OLLAMA_MAX_LOADED_MODELS: '1'
+      OLLAMA_MAX_QUEUE: '2'
+      OLLAMA_CONTEXT_LENGTH: '8192'
+      OLLAMA_KEEP_ALIVE: 5m
+      OLLAMA_DEBUG: 'false'
+    volumes: [models:/models:ro]
+    networks: [inference]
+    healthcheck:
+      test: [CMD, /bin/ollama, list]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    stop_grace_period: 20s
+  tunnel:
+    <<: *hardening
+    image: ${CLOUDFLARED_IMAGE:?Pin the approved Cloudflare connector image digest}
+    user: '65532:65532'
+    command: [tunnel, --config, /etc/cloudflared/config.yml, --no-autoupdate, run]
+    mem_limit: 192m
+    cpus: 0.5
+    tmpfs: [/tmp:size=8m,noexec,nosuid,nodev,mode=1777]
+    volumes:
+      - ./ops/generated/cloudflared.yml:/etc/cloudflared/config.yml:ro
+    secrets: [tunnel_credentials]
+    networks:
+      tunnel_link:
+        ipv4_address: 10.97.0.2
+      outbound: {}
+    depends_on:
+      gateway:
+        condition: service_started
+    stop_grace_period: 15s
+  model-volume-init:
+    profiles: [maintenance]
+    image: ${NODE_IMAGE:?Pin the approved Node image digest}
+    user: '0:0'
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    security_opt: [no-new-privileges:true]
+    network_mode: none
+    command: [node, -e, "require('node:fs').chownSync('/models',10001,10001)"]
+    volumes: [models:/models]
+    restart: 'no'
+  model-loader:
+    profiles: [maintenance]
+    image: ${OLLAMA_IMAGE:?Pin the approved Ollama image digest}
+    user: '10001:10001'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:size=256m,nosuid,nodev,mode=1777]
+    environment:
+      HOME: /tmp/ollama-home
+      OLLAMA_MODELS: /models
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: '1'
+      OLLAMA_MODEL: ${OLLAMA_MODEL:?Choose an approved model}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        /bin/ollama serve >/tmp/ollama-loader.log 2>&1 &
+        server=$$!
+        trap 'kill $$server 2>/dev/null || true' EXIT INT TERM
+        count=0
+        until /bin/ollama list >/dev/null 2>&1; do
+          count=$$((count + 1))
+          test "$$count" -lt 30
+          sleep 1
+        done
+        /bin/ollama pull "$$OLLAMA_MODEL"
+    volumes: [models:/models]
+    networks: [outbound]
+    restart: 'no'
+networks:
+  tunnel_link:
+    internal: true
+    ipam:
+      config: [{subnet: 10.97.0.0/28}]
+  inference:
+    internal: true
+    ipam:
+      config: [{subnet: 10.97.1.0/28}]
+  outbound:
+    ipam:
+      config: [{subnet: 10.97.2.0/28}]
+volumes:
+  models: {}
+secrets:
+  turnstile_secret:
+    file: ./secrets/turnstile-secret
+  tunnel_credentials:
+    file: ./secrets/tunnel-credentials.json

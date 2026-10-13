@@ -28,15 +28,15 @@ For defensible p95 estimates, expand beyond the exploratory 20 warm samples and 
 
 ## Remaining required measurements
 
-| Measurement | Status |
-| --- | --- |
-| Hardware/OS/Docker resource inventory | Not available |
-| CPU-only container warm/cold latency and throughput | Not run |
-| Native Metal comparison | Not approved or run |
-| Local model quality across 56 prompts | Not run |
-| Model and host RAM/CPU pressure | Not measured |
-| Maximum sustainable visitor concurrency | Not measured |
-| Public-edge streaming latency and cancellation | Not verified |
-| Recovery after process/container/Mac restart | Not verified |
+| Measurement                                         | Status              |
+| --------------------------------------------------- | ------------------- |
+| Hardware/OS/Docker resource inventory               | Not available       |
+| CPU-only container warm/cold latency and throughput | Not run             |
+| Native Metal comparison                             | Not approved or run |
+| Local model quality across 56 prompts               | Not run             |
+| Model and host RAM/CPU pressure                     | Not measured        |
+| Maximum sustainable visitor concurrency             | Not measured        |
+| Public-edge streaming latency and cancellation      | Not verified        |
+| Recovery after process/container/Mac restart        | Not verified        |
 
 Retain the container-only architecture only if the actual measured quality and resource targets pass. Otherwise present the native evidence and obtain approval before changing the runtime.

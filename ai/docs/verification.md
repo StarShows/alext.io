@@ -23,22 +23,22 @@ The model responses and browser-side Turnstile/API responses in these tests are 
 
 ## Unverified deployment requirements
 
-| Requirement | Status |
-| --- | --- |
-| Mac model/chip/RAM/OS and available resources | Not inspected |
-| Docker/Metal performance comparison | Not run |
-| Real local Ollama response and 56-case answer quality | Not run |
-| Production Turnstile account/site key/secret | Not configured |
-| Cloudflare account, authoritative DNS and complete mail records | Not inspected |
-| Tunnel credentials and public route | Not configured |
-| Container networking and secret permissions on Mac | Not verified |
-| No public model/admin/router exposure | Intended by configuration, not externally verified |
-| Production stream/cancellation/quotas from a real browser | Not verified |
-| Current resume download and booking link | Deliberately disabled |
-| Google Tag Manager form/session-replay privacy audit | Pending |
-| Namecheap assistant activation | Not performed |
-| Mac reboot, login, power and outage recovery | Not tested |
-| Persistent monitoring/alert delivery | Not installed |
+| Requirement                                                     | Status                                             |
+| --------------------------------------------------------------- | -------------------------------------------------- |
+| Mac model/chip/RAM/OS and available resources                   | Not inspected                                      |
+| Docker/Metal performance comparison                             | Not run                                            |
+| Real local Ollama response and 56-case answer quality           | Not run                                            |
+| Production Turnstile account/site key/secret                    | Not configured                                     |
+| Cloudflare account, authoritative DNS and complete mail records | Not inspected                                      |
+| Tunnel credentials and public route                             | Not configured                                     |
+| Container networking and secret permissions on Mac              | Not verified                                       |
+| No public model/admin/router exposure                           | Intended by configuration, not externally verified |
+| Production stream/cancellation/quotas from a real browser       | Not verified                                       |
+| Current resume download and booking link                        | Deliberately disabled                              |
+| Google Tag Manager form/session-replay privacy audit            | Pending                                            |
+| Namecheap assistant activation                                  | Not performed                                      |
+| Mac reboot, login, power and outage recovery                    | Not tested                                         |
+| Persistent monitoring/alert delivery                            | Not installed                                      |
 
 ## Definition-of-done gate
 

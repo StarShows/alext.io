@@ -8,20 +8,20 @@ The edge terminates HTTPS, an authenticated tunnel reaches only the gateway, the
 
 ## Controls and limits
 
-| Threat | Implemented controls | Remaining validation or risk |
-| --- | --- | --- |
-| Raw model/API exposure | No Compose ports; isolated inference network; exact tunnel hostname/path rules; gateway route allowlist | External scan and actual Mac firewall/router checks still required |
-| Forged client IP | Exact connector socket peer; strict `CF-Connecting-IP` parsing; host check; framework proxy trust disabled | Verify tunnel source address on the Mac; no unreviewed Worker or proxy routes |
-| Automated abuse | Mandatory server-side Turnstile; session entropy; per-IP/session/global budgets; queue and concurrency limits | Bot farms/shared NAT/edge plan limits; memory state resets on restart |
-| Prompt injection | Hard policy checks, contextual classifier, bounded retrieval, strict output schema and evidence-ID reconstruction | Classifier and hypothetical advice remain probabilistic; real-model adversarial evaluation required |
-| Fabricated resume claims | Only server-authored facts become evidence; unknown achievements abstain; advice labeled hypothetical | Human curation and source freshness are still required |
-| XSS | DOM text nodes; raw HTML disabled; no image rendering; narrow Markdown; citation URL allowlist | Existing site scripts and Tag Manager are outside the widget's security boundary |
-| CSRF/token theft | No cookies; memory-only bearer; exact Origin; custom Authorization header; short TTL | Any same-origin compromised script could read the open page's state; a Shadow DOM is not a security sandbox |
-| SSRF/local-network discovery | No user-supplied upstream URLs; fixed HTTP endpoints; redirects rejected; no model tools | Gateway/connector need outbound networking. A full container RCE is not claimed to be contained by URL validation |
-| Resource exhaustion | Body/context/output limits, one model slot, bounded queue/cache/history, HTTP/deadline limits and abort propagation | Real Mac memory/CPU budgets, slow clients and distributed edge attacks need measured validation |
-| Secret disclosure | File-based secrets, no browser secret, safe fixed error messages, no request/body/header logging | Host/root/Docker administrators can access secrets; provider and OS retention must be reviewed |
-| Supply chain | Exact npm dependencies and committed integrity lockfile, pinned Actions, digest-gated production images, read-only CI | Registries and upstream maintainers remain trust dependencies; audit and update deliberately |
-| Unsafe deployment | Dedicated branch, draft PR, preserved existing workflow, exact revision evidence and approval-gated operator scripts | Main protections/environment approvals must be verified before activation; no untrusted self-hosted PR runner |
+| Threat                       | Implemented controls                                                                                                  | Remaining validation or risk                                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Raw model/API exposure       | No Compose ports; isolated inference network; exact tunnel hostname/path rules; gateway route allowlist               | External scan and actual Mac firewall/router checks still required                                                |
+| Forged client IP             | Exact connector socket peer; strict `CF-Connecting-IP` parsing; host check; framework proxy trust disabled            | Verify tunnel source address on the Mac; no unreviewed Worker or proxy routes                                     |
+| Automated abuse              | Mandatory server-side Turnstile; session entropy; per-IP/session/global budgets; queue and concurrency limits         | Bot farms/shared NAT/edge plan limits; memory state resets on restart                                             |
+| Prompt injection             | Hard policy checks, contextual classifier, bounded retrieval, strict output schema and evidence-ID reconstruction     | Classifier and hypothetical advice remain probabilistic; real-model adversarial evaluation required               |
+| Fabricated resume claims     | Only server-authored facts become evidence; unknown achievements abstain; advice labeled hypothetical                 | Human curation and source freshness are still required                                                            |
+| XSS                          | DOM text nodes; raw HTML disabled; no image rendering; narrow Markdown; citation URL allowlist                        | Existing site scripts and Tag Manager are outside the widget's security boundary                                  |
+| CSRF/token theft             | No cookies; memory-only bearer; exact Origin; custom Authorization header; short TTL                                  | Any same-origin compromised script could read the open page's state; a Shadow DOM is not a security sandbox       |
+| SSRF/local-network discovery | No user-supplied upstream URLs; fixed HTTP endpoints; redirects rejected; no model tools                              | Gateway/connector need outbound networking. A full container RCE is not claimed to be contained by URL validation |
+| Resource exhaustion          | Body/context/output limits, one model slot, bounded queue/cache/history, HTTP/deadline limits and abort propagation   | Real Mac memory/CPU budgets, slow clients and distributed edge attacks need measured validation                   |
+| Secret disclosure            | File-based secrets, no browser secret, safe fixed error messages, no request/body/header logging                      | Host/root/Docker administrators can access secrets; provider and OS retention must be reviewed                    |
+| Supply chain                 | Exact npm dependencies and committed integrity lockfile, pinned Actions, digest-gated production images, read-only CI | Registries and upstream maintainers remain trust dependencies; audit and update deliberately                      |
+| Unsafe deployment            | Dedicated branch, draft PR, preserved existing workflow, exact revision evidence and approval-gated operator scripts  | Main protections/environment approvals must be verified before activation; no untrusted self-hosted PR runner     |
 
 ## Secrets
 

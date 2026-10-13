@@ -22,7 +22,7 @@ services:
     init: true
     mem_limit: 512m
     cpus: 1.0
-    tmpfs: [/tmp:size=16m,noexec,nosuid,nodev,mode=1777]
+    tmpfs: [/tmp:size=16m, noexec, nosuid, nodev, mode=1777]
     environment:
       AI_RUNTIME: container
       PORT: '18080'
@@ -55,7 +55,7 @@ services:
     command: [serve]
     mem_limit: ${OLLAMA_MEMORY_LIMIT:?Set the measured memory budget}
     cpus: ${OLLAMA_CPUS:?Set the approved CPU budget}
-    tmpfs: [/tmp:size=256m,nosuid,nodev,mode=1777]
+    tmpfs: [/tmp:size=256m, nosuid, nodev, mode=1777]
     environment:
       HOME: /tmp/ollama-home
       OLLAMA_MODELS: /models
@@ -83,7 +83,7 @@ services:
     command: [tunnel, --config, /etc/cloudflared/config.yml, --no-autoupdate, run]
     mem_limit: 192m
     cpus: 0.5
-    tmpfs: [/tmp:size=8m,noexec,nosuid,nodev,mode=1777]
+    tmpfs: [/tmp:size=8m, noexec, nosuid, nodev, mode=1777]
     volumes:
       - ./ops/generated/cloudflared.yml:/etc/cloudflared/config.yml:ro
     secrets: [tunnel_credentials]
@@ -114,7 +114,7 @@ services:
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    tmpfs: [/tmp:size=256m,nosuid,nodev,mode=1777]
+    tmpfs: [/tmp:size=256m, nosuid, nodev, mode=1777]
     environment:
       HOME: /tmp/ollama-home
       OLLAMA_MODELS: /models
@@ -141,14 +141,14 @@ networks:
   tunnel_link:
     internal: true
     ipam:
-      config: [{subnet: 10.97.0.0/28}]
+      config: [{ subnet: 10.97.0.0/28 }]
   inference:
     internal: true
     ipam:
-      config: [{subnet: 10.97.1.0/28}]
+      config: [{ subnet: 10.97.1.0/28 }]
   outbound:
     ipam:
-      config: [{subnet: 10.97.2.0/28}]
+      config: [{ subnet: 10.97.2.0/28 }]
 volumes:
   models: {}
 secrets:

@@ -9,7 +9,7 @@ All non-health requests require `Origin: https://alext.io`. POST requests requir
 Request:
 
 ```json
-{"turnstileToken":"single-use human verification token","consent":true}
+{ "turnstileToken": "single-use human verification token", "consent": true }
 ```
 
 Success: HTTP 201 with `token` (43-character random base64url bearer) and `expiresAt` (Unix milliseconds). Tokens expire after 15 minutes. The verification token must be accepted by Cloudflare Siteverify for hostname `alext.io`, action `portfolio_session` and a valid recent challenge timestamp. Official test secrets are rejected by production configuration.
@@ -21,7 +21,7 @@ Issuance is limited to three attempts per IP group per 15 minutes, 30 global att
 Requires `Authorization: Bearer <session-token>`.
 
 ```json
-{"message":"What has Alex built with React?","mode":"recruiter"}
+{ "message": "What has Alex built with React?", "mode": "recruiter" }
 ```
 
 Modes: `recruiter`, `hiring-manager`, `leadership`. Requests cannot supply history, tools, a model, system instructions or inference options. Maximum message length: 2,000 characters and 6,000 UTF-8 bytes after normalization. HTTP body limit: 8,192 bytes.

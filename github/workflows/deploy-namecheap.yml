@@ -1,0 +1,120 @@
+name: Deploy alext.io to Namecheap
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alext-io-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy website
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SSH_HOST: ${{ vars.NC_SSH_HOST }}
+      SSH_USER: ${{ vars.NC_SSH_USER }}
+      SSH_PORT: ${{ vars.NC_SSH_PORT }}
+      WEB_ROOT: ${{ vars.NC_WEB_ROOT }}
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v4
+
+      - name: Validate configuration and website
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -s index.html
+          grep -qi '</html>' index.html
+
+          test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+
+          test "$WEB_ROOT" = "/home/realtorstudio/alext.io"
+
+          echo "Validation passed"
+
+      - name: Configure SSH authentication
+        shell: bash
+        env:
+          DEPLOY_KEY: ${{ secrets.NC_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.NC_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          umask 077
+          mkdir -p "$HOME/.ssh"
+
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+
+          chmod 600 "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Backup and deploy index.html
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REMOTE="$SSH_USER@$SSH_HOST"
+          DEPLOY_ID="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          STAGED="$WEB_ROOT/.index.html.deploy-$DEPLOY_ID"
+
+          SSH_ARGS=(
+            -i "$HOME/.ssh/deploy_key"
+            -p "$SSH_PORT"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes
+          )
+
+          SCP_ARGS=(
+            -i "$HOME/.ssh/deploy_key"
+            -P "$SSH_PORT"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o StrictHostKeyChecking=yes
+          )
+
+          echo "Checking destination..."
+
+          ssh "${SSH_ARGS[@]}" "$REMOTE" \
+            "test -d '$WEB_ROOT' &&
+             test -w '$WEB_ROOT' &&
+             test -f '$WEB_ROOT/index.html'"
+
+          echo "Uploading new homepage..."
+
+          scp "${SCP_ARGS[@]}" index.html "$REMOTE:$STAGED"
+
+          LOCAL_SHA=$(sha256sum index.html | awk '{print $1}')
+
+          STAGED_SHA=$(ssh "${SSH_ARGS[@]}" "$REMOTE" \
+            "sha256sum '$STAGED'" | awk '{print $1}')
+
+          test "$LOCAL_SHA" = "$STAGED_SHA"
+
+          echo "Backing up existing homepage..."
+
+          ssh "${SSH_ARGS[@]}" "$REMOTE" \
+            "mkdir -p \"\$HOME/alext-deploy-backups\" &&
+             cp -p '$WEB_ROOT/index.html' \
+             \"\$HOME/alext-deploy-backups/index.html.$DEPLOY_ID\" &&
+             mv '$STAGED' '$WEB_ROOT/index.html'"
+
+          echo "Verifying production file..."
+
+          REMOTE_SHA=$(ssh "${SSH_ARGS[@]}" "$REMOTE" \
+            "sha256sum '$WEB_ROOT/index.html'" | awk '{print $1}')
+
+          test "$LOCAL_SHA" = "$REMOTE_SHA"
+
+          echo "Deployment successful!"

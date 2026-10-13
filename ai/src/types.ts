@@ -5,7 +5,11 @@ export interface Decision {
   intent: Intent;
   confidence: number;
 }
-export interface Citation { id: string; label: string; url: string }
+export interface Citation {
+  id: string;
+  label: string;
+  url: string;
+}
 export interface Fact {
   id: string;
   text: string;
@@ -19,9 +23,22 @@ export interface Block {
   text: string;
   citations: Citation[];
 }
-export interface RawBlock { kind: 'evidence' | 'approach' | 'unknown'; ids: string[]; text: string }
-export interface Message { role: 'user' | 'assistant'; content: string }
-export interface AnswerInput { question: string; mode: Mode; intent: Intent; history: Message[]; facts: Fact[] }
+export interface RawBlock {
+  kind: 'evidence' | 'approach' | 'unknown';
+  ids: string[];
+  text: string;
+}
+export interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+export interface AnswerInput {
+  question: string;
+  mode: Mode;
+  intent: Intent;
+  history: Message[];
+  facts: Fact[];
+}
 export interface ModelStats {
   firstTokenMs: number;
   totalMs: number;

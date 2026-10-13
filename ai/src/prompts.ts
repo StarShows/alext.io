@@ -11,17 +11,37 @@ Only for an approach question, use kind=approach, ids=[], text containing a conc
 For recruiter mode prioritize relevant evidence and limitations. For hiring-manager mode explain technical tradeoffs. For leadership mode connect feasibility, privacy, adoption, measurement and human oversight. At most 180 words by default; use up to 320 for explicitly requested depth. Avoid repeated contact pitches. No ungrounded superlatives. The server adds verified contact links when appropriate.
 Begin with the most directly relevant block. Output JSON only, no fenced code or commentary.`;
 export const decisionSchema = {
-  type: 'object', additionalProperties: false, required: ['scope', 'intent', 'confidence'],
+  type: 'object',
+  additionalProperties: false,
+  required: ['scope', 'intent', 'confidence'],
   properties: {
     scope: { type: 'string', enum: ['professional', 'unrelated', 'unsafe'] },
-    intent: { type: 'string', enum: ['experience', 'project', 'approach', 'contact', 'out-of-scope'] },
+    intent: {
+      type: 'string',
+      enum: ['experience', 'project', 'approach', 'contact', 'out-of-scope'],
+    },
     confidence: { type: 'number', minimum: 0, maximum: 1 },
   },
 };
 export const answerSchema = {
-  type: 'object', additionalProperties: false, required: ['blocks'],
-  properties: { blocks: { type: 'array', minItems: 1, maxItems: 4, items: {
-    type: 'object', additionalProperties: false, required: ['kind', 'ids', 'text'],
-    properties: { kind: { type: 'string', enum: ['evidence', 'approach', 'unknown'] }, ids: { type: 'array', maxItems: 3, items: { type: 'string' } }, text: { type: 'string', maxLength: 1400 } },
-  } } },
+  type: 'object',
+  additionalProperties: false,
+  required: ['blocks'],
+  properties: {
+    blocks: {
+      type: 'array',
+      minItems: 1,
+      maxItems: 4,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['kind', 'ids', 'text'],
+        properties: {
+          kind: { type: 'string', enum: ['evidence', 'approach', 'unknown'] },
+          ids: { type: 'array', maxItems: 3, items: { type: 'string' } },
+          text: { type: 'string', maxLength: 1400 },
+        },
+      },
+    },
+  },
 };

@@ -17,10 +17,12 @@ export class BlockParser {
     if (!this.started) {
       const prefix = this.buffer.match(/^\s*\{\s*"blocks"\s*:\s*\[/);
       if (!prefix) {
-        if (this.buffer.includes('[') || this.buffer.length > 64) throw new ApiError('UNAVAILABLE', 503);
+        if (this.buffer.includes('[') || this.buffer.length > 64)
+          throw new ApiError('UNAVAILABLE', 503);
         return [];
       }
-      this.started = true; this.index = prefix[0].length;
+      this.started = true;
+      this.index = prefix[0].length;
     }
     const result: unknown[] = [];
     for (; this.index < this.buffer.length && !this.closed; this.index++) {
@@ -31,9 +33,14 @@ export class BlockParser {
         else if (character === '"') this.inString = false;
         continue;
       }
-      if (character === '"') { this.inString = true; continue; }
-      if (character === '{') { if (this.depth === 0) this.blockStart = this.index; this.depth++; }
-      else if (character === '}') {
+      if (character === '"') {
+        this.inString = true;
+        continue;
+      }
+      if (character === '{') {
+        if (this.depth === 0) this.blockStart = this.index;
+        this.depth++;
+      } else if (character === '}') {
         if (--this.depth < 0) throw new ApiError('UNAVAILABLE', 503);
         if (this.depth === 0) {
           if (++this.count > 4 || this.blockStart < 0) throw new ApiError('UNAVAILABLE', 503);
@@ -46,9 +53,16 @@ export class BlockParser {
   }
   finish(): unknown[] {
     const result: unknown = JSON.parse(this.buffer);
-    if (!result || typeof result !== 'object' || Object.keys(result).join(',') !== 'blocks') throw new ApiError('UNAVAILABLE', 503);
+    if (!result || typeof result !== 'object' || Object.keys(result).join(',') !== 'blocks')
+      throw new ApiError('UNAVAILABLE', 503);
     const blocks = (result as { blocks: unknown }).blocks;
-    if (!Array.isArray(blocks) || !blocks.length || blocks.length !== this.count || blocks.length > 4) throw new ApiError('UNAVAILABLE', 503);
+    if (
+      !Array.isArray(blocks) ||
+      !blocks.length ||
+      blocks.length !== this.count ||
+      blocks.length > 4
+    )
+      throw new ApiError('UNAVAILABLE', 503);
     return blocks;
   }
 }

@@ -1,7 +1,7 @@
 name: AI service CI
 on:
   pull_request:
-    paths: ['ai/**', '.github/workflows/ai-ci.yml']
+    paths: ['ai/**', '.github/workflows/ai-*.yml']
 permissions:
   contents: read
 concurrency:
@@ -10,7 +10,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -18,19 +18,29 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24.20.0'
-      - name: Resolve pinned dependencies for the isolated service
+      - name: Resolve pinned dependencies (bootstrap only; lockfile follows)
         working-directory: ai
         run: npm install --ignore-scripts --no-fund
-      - name: Record public source and dependency baseline
+      - name: Compile and test gateway
+        working-directory: ai
+        run: npm test
+      - name: Runtime security lint
+        working-directory: ai
+        run: npm run lint
+      - name: Dependency security audit
+        working-directory: ai
+        run: npm audit --omit=dev --audit-level=high
+      - name: Record exact source and dependency baseline
+        if: always()
         run: |
           mkdir -p baseline
-          cp index.html baseline/index.html
           cp ai/package-lock.json baseline/package-lock.json
-          tar -czf baseline/dependencies.tar.gz -C ai node_modules
-          node --version > baseline/node-version.txt
           git rev-parse HEAD > baseline/commit.txt
+          node --version > baseline/node-version.txt
+          git diff --exit-code -- index.html .github/workflows/deploy-namecheap.yml
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
         with:
-          name: ai-baseline
+          name: ai-verification-baseline
           path: baseline/
-          retention-days: 3
+          retention-days: 7

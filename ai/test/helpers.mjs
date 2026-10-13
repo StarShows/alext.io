@@ -22,7 +22,11 @@ export function fixtureModel(overrides = {}) {
     close() {}, ...overrides,
   };
 }
-export const inject = (app, options) => app.inject({ remoteAddress: config.trustedProxy, headers, ...options });
+export function inject(app, options) {
+  const normalized = Object.fromEntries(Object.entries(options.headers ?? headers).filter(([, value]) => value !== undefined));
+  if (options.method === 'DELETE' && options.payload === undefined) delete normalized['content-type'];
+  return app.inject({ remoteAddress: config.trustedProxy, ...options, headers: normalized });
+}
 export async function sessionToken(app, extra = {}) {
   const response = await inject(app, { method: 'POST', url: '/v1/session', payload: { consent: true, turnstileToken: 'fixture-token' }, ...extra });
   if (response.statusCode !== 201) throw new Error(`Fixture session failed: ${response.body}`);

@@ -1,0 +1,36 @@
+name: AI service CI
+on:
+  pull_request:
+    paths: ['ai/**', '.github/workflows/ai-ci.yml']
+permissions:
+  contents: read
+concurrency:
+  group: ai-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.20.0'
+      - name: Resolve pinned dependencies for the isolated service
+        working-directory: ai
+        run: npm install --ignore-scripts --no-fund
+      - name: Record public source and dependency baseline
+        run: |
+          mkdir -p baseline
+          cp index.html baseline/index.html
+          cp ai/package-lock.json baseline/package-lock.json
+          tar -czf baseline/dependencies.tar.gz -C ai node_modules
+          node --version > baseline/node-version.txt
+          git rev-parse HEAD > baseline/commit.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ai-baseline
+          path: baseline/
+          retention-days: 3

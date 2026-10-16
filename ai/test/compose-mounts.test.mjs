@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyComposeMounts } from '../scripts/compose-mounts.mjs';
+import { runInNewContext } from 'node:vm';
+import { smokeComposeMounts, verifyComposeMounts } from '../scripts/compose-mounts.mjs';
 
 function fixture() {
   return {
@@ -35,5 +36,50 @@ test('Compose mount validation rejects missing mounts and weakened protections',
     const config = fixture();
     change(config);
     assert.throws(() => verifyComposeMounts(config), /invalid tmpfs mount/);
+  }
+});
+
+// Execute the exact generated probe against fixture mountinfo, without invoking Docker.
+function probeWithFlags(flagsForMount) {
+  return (command, args) => {
+    assert.equal(command, 'docker');
+    assert(args.includes('--network=none'));
+    assert(args.includes('--cap-drop=ALL'));
+    const mount = args[args.indexOf('--tmpfs') + 1];
+    const flags = flagsForMount(mount);
+    const fakeFs = {
+      writeFileSync() {},
+      unlinkSync() {},
+      statfsSync: () => ({ type: 0x01021994 }),
+      readFileSync: () => `1 0 0:1 / /tmp ${flags} - tmpfs tmpfs rw`,
+    };
+    runInNewContext(args.at(-1), {
+      process: { getuid: () => 10001 },
+      require: (name) => {
+        if (name === 'node:fs') return fakeFs;
+        assert.equal(name, 'node:assert/strict');
+        return assert;
+      },
+    });
+  };
+}
+
+test('runtime mount probes accept extra noexec restrictions on every service', () => {
+  smokeComposeMounts(fixture(), probeWithFlags(() => 'rw,nosuid,nodev,noexec'));
+});
+
+test('runtime mount probes permit execution only where noexec was not required', () => {
+  smokeComposeMounts(
+    fixture(),
+    probeWithFlags((mount) => `rw,nosuid,nodev${mount.includes('noexec') ? ',noexec' : ''}`),
+  );
+});
+
+test('runtime mount probes still reject missing required security flags', () => {
+  for (const flags of ['rw,nosuid,nodev', 'rw,nodev,noexec', 'rw,nosuid,noexec']) {
+    assert.throws(
+      () => smokeComposeMounts(fixture(), probeWithFlags(() => flags)),
+      (error) => error.code === 'ERR_ASSERTION',
+    );
   }
 });

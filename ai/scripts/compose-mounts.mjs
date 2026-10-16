@@ -16,10 +16,12 @@ export function verifyComposeMounts(config) {
   }
 }
 
-export function smokeComposeMounts(config) {
+export function smokeComposeMounts(config, run = execFileSync) {
   verifyComposeMounts(config);
   const image = 'alext-ai-ci:smoke';
   for (const [name, mount] of Object.entries(expectedMounts)) {
+    // Omission of noexec does not request exec. Accept stricter runtime defaults.
+    // This checks mount protections, not whether real Ollama can load its runners.
     const script = [
       "const fs = require('node:fs'), a = require('node:assert/strict');",
       'a.equal(process.getuid(), 10001);',
@@ -29,10 +31,10 @@ export function smokeComposeMounts(config) {
       ".split(String.fromCharCode(10)).find(line => line.split(' ')[4] === '/tmp');",
       "const flags = row.split(' ')[5].split(',');",
       "a(flags.includes('nosuid')); a(flags.includes('nodev'));",
-      `a.equal(flags.includes('noexec'), ${mount.includes('noexec')});`,
+      `if (${mount.includes('noexec')}) a(flags.includes('noexec'));`,
       "fs.unlinkSync('/tmp/mount-check');",
     ].join('\n');
-    execFileSync(
+    run(
       'docker',
       [
         'run',

@@ -277,6 +277,13 @@ export async function prepare({ smoke = false } = {}) {
     await temporary('none', { root: true }, (id) => {
       assert.equal(run(['wait', id]), '0', 'Volume initialization failed');
     });
+    if (smoke) {
+      // Mirror the downloader's writable startup before testing read-only storage.
+      await temporary('none', {}, async (id) => {
+        await ready(id);
+        noLoadedModels(id);
+      });
+    }
     if (!smoke) {
       outbound = `alext-bench-${randomUUID()}`;
       run([

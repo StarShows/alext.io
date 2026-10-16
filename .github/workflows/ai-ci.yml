@@ -28,7 +28,11 @@ jobs:
         run: npm ci --ignore-scripts --no-fund
       - name: Check committed formatting without modifying source
         working-directory: ai
-        run: npm run format:check
+        run: |
+          if ! npm run format:check; then
+            ./node_modules/.bin/prettier test/compose-mounts.test.mjs | diff -u test/compose-mounts.test.mjs - || true
+            exit 1
+          fi
       - name: Compile and test gateway, transports and website integration
         working-directory: ai
         run: |

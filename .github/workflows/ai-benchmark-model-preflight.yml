@@ -57,11 +57,33 @@ jobs:
           set -euo pipefail
           docker pull --platform linux/arm64 ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c
           node --input-type=module <<'JS' | tee reports/model-preparation/arm64-smoke.txt
-          import { prepare } from './scripts/prepare-benchmark-model.mjs';
+          import { prepare, containerArgs, verifyContainer } from './scripts/prepare-benchmark-model.mjs';
+          import { execFileSync } from 'node:child_process';
+          import { randomUUID } from 'node:crypto';
+          const run = (args) => execFileSync('docker', args, {encoding:'utf8',timeout:10000,stdio:['ignore','pipe','pipe']}).trim();
           try { await prepare({smoke:true}); }
           catch (e) {
             console.error(JSON.stringify({name:e.name,code:e.code,status:e.status,message:e.message.split('\n')[0],stderr:e.stderr?.toString().slice(0,2000)},null,2));
             process.exitCode=1;
+            for (const readOnlyModels of [false,true]) {
+              const options={readOnlyModels};
+              const args=containerArgs('alext-bench-'+randomUUID(),'none',options);
+              args[args.length-1]='umask 077; exec /bin/ollama serve';
+              const id=run(args);
+              try {
+                verifyContainer(JSON.parse(run(['inspect',id]))[0],'none',options);
+                run(['start',id]);
+                await new Promise(r=>setTimeout(r,2000));
+                const state=JSON.parse(run(['inspect',id]))[0].State;
+                console.error(JSON.stringify({readOnlyModels,running:state.Running,exitCode:state.ExitCode,oom:state.OOMKilled}));
+                try { console.error('Local list: '+run(['exec',id,'/bin/ollama','list'])); }
+                catch (err) { console.error('Local list failure: '+err.stderr?.toString().slice(0,1000)); }
+                let logs;
+                try { logs=run(['logs',id]); } catch (err) { logs=err.stderr?.toString()??''; }
+                const captured=execFileSync('docker',['logs',id],{encoding:'utf8',timeout:10000,stdio:['ignore','pipe','pipe']});
+                console.error((captured+'\n'+logs).split('\n').filter(l=>/error|failed|permission|read.only|mkdir/i.test(l)&&!l.includes('server config')).join('\n').slice(0,3000));
+              } finally { run(['rm','--force',id]); }
+            }
           }
           JS
           git rev-parse HEAD > reports/model-preparation/tested-source.txt

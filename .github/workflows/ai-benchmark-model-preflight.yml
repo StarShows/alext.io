@@ -58,7 +58,7 @@ jobs:
           docker pull --platform linux/arm64 ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c
           node --input-type=module <<'JS' | tee reports/model-preparation/arm64-smoke.txt
           import { prepare, containerArgs, verifyContainer } from './scripts/prepare-benchmark-model.mjs';
-          import { execFileSync } from 'node:child_process';
+          import { execFileSync, spawnSync } from 'node:child_process';
           import { randomUUID } from 'node:crypto';
           const run = (args) => execFileSync('docker', args, {encoding:'utf8',timeout:10000,stdio:['ignore','pipe','pipe']}).trim();
           try { await prepare({smoke:true}); }
@@ -78,10 +78,8 @@ jobs:
                 console.error(JSON.stringify({readOnlyModels,running:state.Running,exitCode:state.ExitCode,oom:state.OOMKilled}));
                 try { console.error('Local list: '+run(['exec',id,'/bin/ollama','list'])); }
                 catch (err) { console.error('Local list failure: '+err.stderr?.toString().slice(0,1000)); }
-                let logs;
-                try { logs=run(['logs',id]); } catch (err) { logs=err.stderr?.toString()??''; }
-                const captured=execFileSync('docker',['logs',id],{encoding:'utf8',timeout:10000,stdio:['ignore','pipe','pipe']});
-                console.error((captured+'\n'+logs).split('\n').filter(l=>/error|failed|permission|read.only|mkdir/i.test(l)&&!l.includes('server config')).join('\n').slice(0,3000));
+                const log=spawnSync('docker',['logs',id],{encoding:'utf8',timeout:10000,maxBuffer:65536});
+                console.error(((log.stdout??'')+'\n'+(log.stderr??'')).split('\n').filter(l=>/error|failed|permission|read.only|mkdir/i.test(l)&&!l.includes('server config')).join('\n').slice(0,3000));
               } finally { run(['rm','--force',id]); }
             }
           }

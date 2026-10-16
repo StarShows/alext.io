@@ -10,12 +10,14 @@ import { pathToFileURL } from 'node:url';
 export const image =
   'ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c';
 export const model = 'qwen3.5:2b-q4_K_M';
-const approvedModelManifest = '1e2d21a4f03ab9e4a9c1976a4b7e88f21de61d65f2c5485d8fde8942be73f1e7';
+export const approvedModelManifest =
+  '1e2d21a4f03ab9e4a9c1976a4b7e88f21de61d65f2c5485d8fde8942be73f1e7';
 export const volume = 'alext-ai-benchmark-qwen35-2b';
 const ownerLabel = 'io.alext.benchmark';
 const ownerValue = 'qwen35-2b-v1';
 const GiB = 1024 ** 3;
 const manifestPath = '/models/manifests/registry.ollama.ai/library/qwen3.5/2b-q4_K_M';
+const activeManifestPath = '/models/manifests-v2/ollama.com/library/qwen3.5/2b-q4_K_M';
 const registryUrl = 'https://registry.ollama.ai/v2/library/qwen3.5/manifests/2b-q4_K_M';
 const limits = { memoryBytes: 4 * GiB, cpuEquivalents: 4, pids: 128 };
 
@@ -55,6 +57,97 @@ export async function registryManifest(request = fetch) {
   const manifest = JSON.parse(raw.toString('utf8'));
   const { parts, bytes } = validateManifest(manifest);
   return { manifest, parts, bytes, registryDigest: createHash('sha256').update(raw).digest('hex') };
+}
+
+// Ollama 0.40.4 writes a legacy downgrade anchor with one extra manifest layer.
+// This is not permission to ignore unknown layers, fields, or changed model metadata.
+export function verifyLocalManifest(local, metadata) {
+  assert.equal(metadata.registryDigest, approvedModelManifest, 'Unapproved registry manifest');
+  assert(
+    Number.isSafeInteger(metadata.manifestBytes) &&
+      metadata.manifestBytes > 0 &&
+      metadata.manifestBytes <= 16384,
+    'Invalid original manifest size',
+  );
+  validateManifest(metadata.manifest);
+  validateManifest(local);
+  const expected = structuredClone(metadata.manifest);
+  const anchored = local.layers.length === expected.layers.length + 1;
+  if (anchored) {
+    expected.layers.push({
+      mediaType: 'application/vnd.docker.distribution.manifest.v2+json',
+      digest: `sha256:${approvedModelManifest}`,
+      size: metadata.manifestBytes,
+    });
+  }
+  assert.deepEqual(local, expected, 'Stored model metadata differs from the approved manifest');
+  return anchored;
+}
+
+// The pinned original blob, the active v2 link, and its legacy compatibility copy
+// are separate integrity checks. Never use the compatibility copy's hash as the
+// inference model digest. All filesystem paths are fixed or derived from vetted hashes.
+export function verifyStoredModel(run, id) {
+  const originalPath = `/models/blobs/sha256-${approvedModelManifest}`;
+  const fileSize = (path) => Number(run(['exec', id, '/usr/bin/stat', '-L', '-c', '%s', path]));
+  const fileHash = (path) => {
+    const hash = run(['exec', id, '/usr/bin/sha256sum', path], { timeout: 180000 }).split(/\s+/)[0];
+    assert(/^[a-f0-9]{64}$/.test(hash), 'Invalid stored file digest');
+    return hash;
+  };
+  const smallJson = (path) => {
+    const size = fileSize(path);
+    assert(
+      Number.isSafeInteger(size) && size > 0 && size <= 16384,
+      'Oversized or invalid metadata',
+    );
+    return { size, value: JSON.parse(run(['exec', id, '/bin/cat', path])) };
+  };
+  assert.equal(
+    fileHash(originalPath),
+    approvedModelManifest,
+    'Original manifest checksum mismatch',
+  );
+  const original = smallJson(originalPath);
+  const { parts, bytes } = validateManifest(original.value);
+  const metadata = {
+    manifest: original.value,
+    manifestBytes: original.size,
+    registryDigest: approvedModelManifest,
+  };
+  const compatibility = smallJson(manifestPath);
+  const hasCompatibilityAnchor = verifyLocalManifest(compatibility.value, metadata);
+  assert.equal(
+    run(['exec', id, '/usr/bin/readlink', '-e', activeManifestPath]),
+    originalPath,
+    'Active model name does not resolve to the approved manifest blob',
+  );
+  assert.equal(
+    fileHash(activeManifestPath),
+    approvedModelManifest,
+    'Active manifest checksum mismatch',
+  );
+  for (const part of parts) {
+    const path = `/models/blobs/${part.digest.replace(':', '-')}`;
+    assert.equal(fileSize(path), part.size, 'Stored model file size mismatch');
+    assert.equal(fileHash(path), part.digest.slice(7), 'Stored model checksum mismatch');
+  }
+  const configPath = `/models/blobs/${original.value.config.digest.replace(':', '-')}`;
+  const { value: config } = smallJson(configPath);
+  assert(
+    !config.remote_host && !config.remote_model && config.model_format === 'gguf',
+    'Remote or non-GGUF model refused',
+  );
+  return {
+    modelDigest: approvedModelManifest,
+    registryManifestDigest: approvedModelManifest,
+    compatibilityManifestDigest: fileHash(manifestPath),
+    hasCompatibilityAnchor,
+    originalManifestVerified: true,
+    activeManifestVerified: true,
+    modelBytes: bytes,
+    downloadedFilesVerified: parts.length,
+  };
 }
 
 export function containerArgs(name, network, { root = false, readOnlyModels = false } = {}) {
@@ -198,14 +291,15 @@ function macFreeBytes() {
   return Number(stats.bavail * stats.bsize);
 }
 
-export async function prepare({ smoke = false } = {}) {
+export async function prepare({ smoke = false, verifyOnly = false } = {}) {
+  assert(!(smoke && verifyOnly), 'Conflicting preparation modes');
   assert.equal(process.arch, 'arm64', 'Native ARM64 Node is required');
   assert.equal(process.platform, smoke ? 'linux' : 'darwin', 'Incorrect preparation host');
   if (smoke)
     assert.equal(process.env.GITHUB_ACTIONS, 'true', 'Smoke mode is restricted to isolated CI');
   const { run, context } = dockerClient();
-  const metadata = smoke ? null : await registryManifest();
-  if (!smoke)
+  const metadata = smoke || verifyOnly ? null : await registryManifest();
+  if (!smoke && !verifyOnly)
     assert.equal(
       metadata.registryDigest,
       approvedModelManifest,
@@ -214,12 +308,14 @@ export async function prepare({ smoke = false } = {}) {
   const freeBefore = smoke ? null : macFreeBytes();
   if (!smoke)
     assert(
-      freeBefore >= 12 * GiB + 2 * metadata.bytes + GiB,
-      'Insufficient Mac disk reserve for model download',
+      freeBefore >= (verifyOnly ? 12 * GiB : 12 * GiB + 2 * metadata.bytes + GiB),
+      'Insufficient Mac disk reserve for the selected operation',
     );
   const known = run(['volume', 'ls', '--format', '{{.Name}}']).split('\n');
-  if (!known.includes(volume))
+  if (!known.includes(volume)) {
+    assert(!verifyOnly, 'Benchmark volume is missing; verification never creates it');
     run(['volume', 'create', '--driver=local', '--label', `${ownerLabel}=${ownerValue}`, volume]);
+  }
   const [storage] = JSON.parse(run(['volume', 'inspect', volume]));
   assert.equal(storage.Labels?.[ownerLabel], ownerValue, 'Refusing an unrelated existing volume');
   assert.equal(storage.Driver, 'local', 'Unexpected volume driver');
@@ -276,9 +372,11 @@ export async function prepare({ smoke = false } = {}) {
   };
   let result;
   try {
-    await temporary('none', { root: true }, (id) => {
-      assert.equal(run(['wait', id]), '0', 'Volume initialization failed');
-    });
+    if (!verifyOnly) {
+      await temporary('none', { root: true }, (id) => {
+        assert.equal(run(['wait', id]), '0', 'Volume initialization failed');
+      });
+    }
     if (smoke) {
       // Mirror the downloader's writable startup before testing read-only storage.
       await temporary('none', {}, async (id) => {
@@ -286,7 +384,7 @@ export async function prepare({ smoke = false } = {}) {
         noLoadedModels(id);
       });
     }
-    if (!smoke) {
+    if (!smoke && !verifyOnly) {
       outbound = `alext-bench-${randomUUID()}`;
       run([
         'network',
@@ -359,45 +457,18 @@ export async function prepare({ smoke = false } = {}) {
           inferenceRun: false,
           modelDownloaded: false,
         };
-      const localRaw = run(['exec', id, '/bin/cat', manifestPath]);
-      const localManifest = JSON.parse(localRaw);
-      assert.deepEqual(
-        localManifest,
-        metadata.manifest,
-        'Registry tag changed during download; model must be reviewed',
-      );
-      const digest = run(['exec', id, '/usr/bin/sha256sum', manifestPath]).split(/\s+/)[0];
-      assert(/^[a-f0-9]{64}$/.test(digest), 'Invalid stored model digest');
-      console.log('Download finished. Verifying stored model files without network access.');
-      for (const part of metadata.parts) {
-        const path = `/models/blobs/${part.digest.replace(':', '-')}`;
-        assert.equal(
-          Number(run(['exec', id, '/usr/bin/stat', '-c', '%s', path])),
-          part.size,
-          'Stored model file size mismatch',
-        );
-        const actual = run(['exec', id, '/usr/bin/sha256sum', path], { timeout: 180000 }).split(
-          /\s+/,
-        )[0];
-        assert.equal(actual, part.digest.slice(7), 'Stored model checksum mismatch');
-      }
-      const configPath = `/models/blobs/${localManifest.config.digest.replace(':', '-')}`;
-      const config = JSON.parse(run(['exec', id, '/bin/cat', configPath]));
-      assert(
-        !config.remote_host && !config.remote_model && config.model_format === 'gguf',
-        'Remote or non-GGUF model refused',
-      );
+      console.log('Verifying approved model files and active manifest without network access.');
+      const verified = verifyStoredModel(run, id);
       noLoadedModels(id);
       return {
         status: 'model-prepared',
         image,
         model,
         volume,
-        modelDigest: digest,
-        registryManifestDigest: metadata.registryDigest,
-        modelBytes: metadata.bytes,
+        ...verified,
         limits,
-        downloadedFilesVerified: metadata.parts.length,
+        verificationOnly: verifyOnly,
+        downloadPerformed: !verifyOnly,
         readOnlyOfflineStartupVerified: true,
         noModelsLoaded: true,
         inferenceRun: false,
@@ -448,10 +519,11 @@ export async function prepare({ smoke = false } = {}) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     if (process.argv[2] === '--prepare') await prepare();
+    else if (process.argv[2] === '--verify') await prepare({ verifyOnly: true });
     else if (process.argv[2] === '--smoke') await prepare({ smoke: true });
     else if (process.argv[2] === '--metadata-only')
       console.log(JSON.stringify(await registryManifest(), null, 2));
-    else throw new Error('Use --prepare on the approved Mac mini');
+    else throw new Error('Use --prepare or --verify on the approved Mac mini');
   } catch (error) {
     console.error(
       `STOP: ${error?.code === 'ERR_ASSERTION' ? error.message.split('\n')[0] : 'Model preparation did not finish'}`,

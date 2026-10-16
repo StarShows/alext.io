@@ -96,6 +96,7 @@ export function containerArgs(name, network, { root = false, readOnlyModels = fa
     '--env=OLLAMA_MODELS=/models',
     '--env=OLLAMA_HOST=127.0.0.1:11434',
     '--env=OLLAMA_NO_CLOUD=1',
+    '--env=OLLAMA_NOPRUNE=1',
     '--env=OLLAMA_CONTEXT_LENGTH=4096',
     '--env=OLLAMA_NUM_PARALLEL=1',
     '--env=OLLAMA_MAX_LOADED_MODELS=1',
@@ -157,6 +158,7 @@ export function verifyContainer(actual, network, { root = false, readOnlyModels 
   for (const setting of [
     'OLLAMA_HOST=127.0.0.1:11434',
     'OLLAMA_NO_CLOUD=1',
+    'OLLAMA_NOPRUNE=1',
     'OLLAMA_MODELS=/models',
   ])
     assert(actual.Config.Env.includes(setting), 'Missing fixed local Ollama setting');

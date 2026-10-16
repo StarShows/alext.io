@@ -25,7 +25,12 @@ function inspection(root = false, readOnlyModels = false) {
       Image: image,
       User: root ? '0:0' : '10001:10001',
       Labels: { 'io.alext.benchmark': 'qwen35-2b-v1' },
-      Env: ['OLLAMA_HOST=127.0.0.1:11434', 'OLLAMA_MODELS=/models', 'OLLAMA_NO_CLOUD=1'],
+      Env: [
+        'OLLAMA_HOST=127.0.0.1:11434',
+        'OLLAMA_MODELS=/models',
+        'OLLAMA_NO_CLOUD=1',
+        'OLLAMA_NOPRUNE=1',
+      ],
     },
     HostConfig: {
       NetworkMode: 'none',
@@ -187,4 +192,12 @@ test('single-file logging rejects implicit compression and missing disk bounds',
     delete value.HostConfig.LogConfig.Config[key];
     assert.throws(() => verifyContainer(value, 'none'));
   }
+});
+
+test('model preparation disables automatic pruning in created and inspected runtimes', () => {
+  const args = containerArgs('alext-bench-abcdef', 'none', { readOnlyModels: true });
+  assert(args.includes('--env=OLLAMA_NOPRUNE=1'));
+  const value = inspection(false, true);
+  value.Config.Env = value.Config.Env.filter((setting) => !setting.startsWith('OLLAMA_NOPRUNE='));
+  assert.throws(() => verifyContainer(value, 'none', { readOnlyModels: true }));
 });

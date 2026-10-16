@@ -50,7 +50,7 @@ function probeWithFlags(flagsForMount) {
     const fakeFs = {
       writeFileSync() {},
       unlinkSync() {},
-      statfsSync: () => ({ type: 0x01021994 }),
+      statfsSync: () => ({ type: 0x1021994 }),
       readFileSync: () => `1 0 0:1 / /tmp ${flags} - tmpfs tmpfs rw`,
     };
     runInNewContext(args.at(-1), {
@@ -69,17 +69,15 @@ test('runtime mount probes accept extra noexec restrictions on every service', (
 });
 
 test('runtime mount probes permit execution only where noexec was not required', () => {
-  smokeComposeMounts(
-    fixture(),
-    probeWithFlags((mount) => `rw,nosuid,nodev${mount.includes('noexec') ? ',noexec' : ''}`),
-  );
+  const flagsForMount = (mount) => {
+    return mount.includes('noexec') ? 'rw,nosuid,nodev,noexec' : 'rw,nosuid,nodev';
+  };
+  smokeComposeMounts(fixture(), probeWithFlags(flagsForMount));
 });
 
 test('runtime mount probes still reject missing required security flags', () => {
   for (const flags of ['rw,nosuid,nodev', 'rw,nodev,noexec', 'rw,nosuid,noexec']) {
-    assert.throws(
-      () => smokeComposeMounts(fixture(), probeWithFlags(() => flags)),
-      (error) => error.code === 'ERR_ASSERTION',
-    );
+    const probe = () => smokeComposeMounts(fixture(), probeWithFlags(() => flags));
+    assert.throws(probe, { code: 'ERR_ASSERTION' });
   }
 });

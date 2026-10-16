@@ -7,7 +7,8 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 // Operator-only preparation. Never calls a generation API or the native Mac service.
-export const image = 'ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c';
+export const image =
+  'ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c';
 export const model = 'qwen3.5:2b-q4_K_M';
 export const volume = 'alext-ai-benchmark-qwen35-2b';
 const ownerLabel = 'io.alext.benchmark';
@@ -21,7 +22,10 @@ export function validateManifest(manifest) {
   assert.equal(manifest.schemaVersion, 2, 'Unexpected model manifest version');
   assert(Array.isArray(manifest.layers), 'Missing model layers');
   assert(manifest.layers.length > 0 && manifest.layers.length <= 16, 'Invalid layer count');
-  assert(manifest.layers.some((part) => part.mediaType === 'application/vnd.ollama.image.model'), 'Missing local model weights');
+  assert(
+    manifest.layers.some((part) => part.mediaType === 'application/vnd.ollama.image.model'),
+    'Missing local model weights',
+  );
   const parts = [manifest.config, ...manifest.layers];
   let bytes = 0;
   for (const part of parts) {
@@ -34,7 +38,10 @@ export function validateManifest(manifest) {
 }
 
 export async function registryManifest(request = fetch) {
-  const response = await request(registryUrl, { redirect: 'error', signal: AbortSignal.timeout(30000) });
+  const response = await request(registryUrl, {
+    redirect: 'error',
+    signal: AbortSignal.timeout(30000),
+  });
   assert(response.ok && response.body, 'Official model metadata is unavailable');
   const chunks = [];
   let length = 0;
@@ -51,24 +58,61 @@ export async function registryManifest(request = fetch) {
 
 export function containerArgs(name, network, { root = false, readOnlyModels = false } = {}) {
   assert(/^alext-bench-[a-f0-9-]+$/.test(name), 'Invalid temporary container name');
-  assert(network === 'none' || /^alext-bench-[a-f0-9-]+$/.test(network), 'Invalid benchmark network');
+  assert(
+    network === 'none' || /^alext-bench-[a-f0-9-]+$/.test(network),
+    'Invalid benchmark network',
+  );
   assert(!root || network === 'none', 'Volume initializer must have no network');
   return [
-    'create', '--name', name, '--label', `${ownerLabel}=${ownerValue}`,
-    '--pull=never', '--platform=linux/arm64', '--network', network,
-    '--user', root ? '0:0' : '10001:10001', '--read-only', '--cap-drop=ALL',
-    ...(root ? ['--cap-add=CHOWN'] : []), '--security-opt=no-new-privileges:true',
-    '--memory=4g', '--memory-swap=4g', '--cpus=4', '--pids-limit=128', '--restart=no',
-    '--log-driver=local', '--log-opt=max-size=1m', '--log-opt=max-file=1',
+    'create',
+    '--name',
+    name,
+    '--label',
+    `${ownerLabel}=${ownerValue}`,
+    '--pull=never',
+    '--platform=linux/arm64',
+    '--network',
+    network,
+    '--user',
+    root ? '0:0' : '10001:10001',
+    '--read-only',
+    '--cap-drop=ALL',
+    ...(root ? ['--cap-add=CHOWN'] : []),
+    '--security-opt=no-new-privileges:true',
+    '--memory=4g',
+    '--memory-swap=4g',
+    '--cpus=4',
+    '--pids-limit=128',
+    '--restart=no',
+    '--log-driver=local',
+    '--log-opt=max-size=1m',
+    '--log-opt=max-file=1',
     '--tmpfs=/tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777',
-    '--mount', `type=volume,src=${volume},dst=/models,volume-nocopy${readOnlyModels ? ',readonly' : ''}`,
-    '--env=HOME=/tmp/ollama-home', '--env=OLLAMA_MODELS=/models',
-    '--env=OLLAMA_HOST=127.0.0.1:11434', '--env=OLLAMA_NO_CLOUD=1',
-    '--env=OLLAMA_CONTEXT_LENGTH=4096', '--env=OLLAMA_NUM_PARALLEL=1',
-    '--env=OLLAMA_MAX_LOADED_MODELS=1', '--env=OLLAMA_MAX_QUEUE=2',
-    '--env=OLLAMA_DEBUG=false', '--env=OLLAMA_KEEP_ALIVE=0',
-    ...['HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'all_proxy', 'no_proxy'].map((key) => `--env=${key}=`),
-    '--entrypoint=/bin/sh', image, '-ec',
+    '--mount',
+    `type=volume,src=${volume},dst=/models,volume-nocopy${readOnlyModels ? ',readonly' : ''}`,
+    '--env=HOME=/tmp/ollama-home',
+    '--env=OLLAMA_MODELS=/models',
+    '--env=OLLAMA_HOST=127.0.0.1:11434',
+    '--env=OLLAMA_NO_CLOUD=1',
+    '--env=OLLAMA_CONTEXT_LENGTH=4096',
+    '--env=OLLAMA_NUM_PARALLEL=1',
+    '--env=OLLAMA_MAX_LOADED_MODELS=1',
+    '--env=OLLAMA_MAX_QUEUE=2',
+    '--env=OLLAMA_DEBUG=false',
+    '--env=OLLAMA_KEEP_ALIVE=0',
+    ...[
+      'HTTP_PROXY',
+      'HTTPS_PROXY',
+      'ALL_PROXY',
+      'NO_PROXY',
+      'http_proxy',
+      'https_proxy',
+      'all_proxy',
+      'no_proxy',
+    ].map((key) => `--env=${key}=`),
+    '--entrypoint=/bin/sh',
+    image,
+    '-ec',
     root ? 'chown 10001:10001 /models' : 'umask 077; exec /bin/ollama serve >/tmp/server.log 2>&1',
   ];
 }
@@ -87,8 +131,12 @@ export function verifyContainer(actual, network, { root = false, readOnlyModels 
   assert.equal(host.PidsLimit, limits.pids, 'Process limit not applied');
   assert.equal(host.RestartPolicy.Name, 'no', 'Automatic restart refused');
   assert.deepEqual(host.CapDrop, ['ALL'], 'Capabilities not dropped');
-  assert.deepEqual(host.CapAdd ?? [], root ? ['CHOWN'] : [], 'Unexpected added capability');
-  assert(host.SecurityOpt.some((value) => /^no-new-privileges(?::true)?$/.test(value)), 'Missing privilege restriction');
+  const addedCaps = (host.CapAdd ?? []).map((name) => name.replace(/^CAP_/, ''));
+  assert.deepEqual(addedCaps, root ? ['CHOWN'] : [], 'Unexpected added capability');
+  assert(
+    host.SecurityOpt.some((value) => /^no-new-privileges(?::true)?$/.test(value)),
+    'Missing privilege restriction',
+  );
   assert.equal(Object.keys(host.PortBindings ?? {}).length, 0, 'Published ports refused');
   assert.equal(host.PublishAllPorts, false, 'Published ports refused');
   assert.equal((host.Binds ?? []).length, 0, 'Host filesystem binds refused');
@@ -100,20 +148,36 @@ export function verifyContainer(actual, network, { root = false, readOnlyModels 
   assert.equal(mount.Name, volume, 'Unexpected volume');
   assert.equal(mount.Destination, '/models', 'Unexpected mount location');
   assert.equal(mount.RW, !readOnlyModels, 'Incorrect model volume access');
-  for (const setting of ['OLLAMA_HOST=127.0.0.1:11434', 'OLLAMA_NO_CLOUD=1', 'OLLAMA_MODELS=/models'])
+  for (const setting of [
+    'OLLAMA_HOST=127.0.0.1:11434',
+    'OLLAMA_NO_CLOUD=1',
+    'OLLAMA_MODELS=/models',
+  ])
     assert(actual.Config.Env.includes(setting), 'Missing fixed local Ollama setting');
 }
 
 function dockerClient() {
-  const invoke = (args, options = {}) => execFileSync('docker', args, {
-    encoding: 'utf8', timeout: 30000, maxBuffer: 2 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'pipe'], ...options,
-  }).trim();
+  const invoke = (args, options = {}) =>
+    execFileSync('docker', args, {
+      encoding: 'utf8',
+      timeout: 30000,
+      maxBuffer: 2 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+      ...options,
+    }).trim();
   const context = invoke(['context', 'show']);
   const [details] = JSON.parse(invoke(['context', 'inspect', context]));
-  assert(details.Endpoints?.docker?.Host?.startsWith('unix:///'), 'Refusing a remote Docker endpoint');
+  assert(
+    details.Endpoints?.docker?.Host?.startsWith('unix:///'),
+    'Refusing a remote Docker endpoint',
+  );
   const run = (args, options) => invoke(['--context', context, ...args], options);
-  assert(['linux/aarch64', 'linux/arm64'].includes(run(['info', '--format', '{{.OSType}}/{{.Architecture}}'])), 'Expected a local ARM64 Docker VM');
+  assert(
+    ['linux/aarch64', 'linux/arm64'].includes(
+      run(['info', '--format', '{{.OSType}}/{{.Architecture}}']),
+    ),
+    'Expected a local ARM64 Docker VM',
+  );
   const [installed] = JSON.parse(run(['image', 'inspect', image]));
   assert.equal(installed.Architecture, 'arm64', 'Installed image architecture mismatch');
   assert.equal(installed.Os, 'linux', 'Installed image OS mismatch');
@@ -129,23 +193,36 @@ function macFreeBytes() {
 export async function prepare({ smoke = false } = {}) {
   assert.equal(process.arch, 'arm64', 'Native ARM64 Node is required');
   assert.equal(process.platform, smoke ? 'linux' : 'darwin', 'Incorrect preparation host');
-  if (smoke) assert.equal(process.env.GITHUB_ACTIONS, 'true', 'Smoke mode is restricted to isolated CI');
+  if (smoke)
+    assert.equal(process.env.GITHUB_ACTIONS, 'true', 'Smoke mode is restricted to isolated CI');
   const { run, context } = dockerClient();
   const metadata = smoke ? null : await registryManifest();
   const freeBefore = smoke ? null : macFreeBytes();
-  if (!smoke) assert(freeBefore >= 12 * GiB + 2 * metadata.bytes + GiB, 'Insufficient Mac disk reserve for model download');
+  if (!smoke)
+    assert(
+      freeBefore >= 12 * GiB + 2 * metadata.bytes + GiB,
+      'Insufficient Mac disk reserve for model download',
+    );
   const known = run(['volume', 'ls', '--format', '{{.Name}}']).split('\n');
-  if (!known.includes(volume)) run(['volume', 'create', '--driver=local', '--label', `${ownerLabel}=${ownerValue}`, volume]);
+  if (!known.includes(volume))
+    run(['volume', 'create', '--driver=local', '--label', `${ownerLabel}=${ownerValue}`, volume]);
   const [storage] = JSON.parse(run(['volume', 'inspect', volume]));
   assert.equal(storage.Labels?.[ownerLabel], ownerValue, 'Refusing an unrelated existing volume');
   assert.equal(storage.Driver, 'local', 'Unexpected volume driver');
   assert.equal(Object.keys(storage.Options ?? {}).length, 0, 'Custom volume mounts refused');
-  assert.equal(run(['ps', '-aq', '--filter', `volume=${volume}`]), '', 'Benchmark volume is already attached to a container');
+  assert.equal(
+    run(['ps', '-aq', '--filter', `volume=${volume}`]),
+    '',
+    'Benchmark volume is already attached to a container',
+  );
   const owned = new Set();
   let outbound;
   let interrupt = false;
   let pullProcess;
-  const onSignal = () => { interrupt = true; pullProcess?.kill('SIGTERM'); };
+  const onSignal = () => {
+    interrupt = true;
+    pullProcess?.kill('SIGTERM');
+  };
   process.once('SIGINT', onSignal);
   process.once('SIGTERM', onSignal);
   const temporary = async (network, options, action) => {
@@ -166,14 +243,22 @@ export async function prepare({ smoke = false } = {}) {
   const ready = async (id) => {
     for (let attempt = 0; attempt < 30; attempt++) {
       assert(!interrupt, 'Preparation interrupted');
-      try { run(['exec', id, '/bin/ollama', 'list']); return; } catch {}
+      try {
+        run(['exec', id, '/bin/ollama', 'list']);
+        return;
+      } catch {}
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     throw new Error('Ollama readiness timed out');
   };
   const noLoadedModels = (id) => {
-    const lines = run(['exec', id, '/bin/ollama', 'ps']).split('\n').filter((line) => line.trim());
-    assert(lines.length === 1 && /^NAME\s/.test(lines[0]), 'Unexpected loaded model; no inference was requested');
+    const lines = run(['exec', id, '/bin/ollama', 'ps'])
+      .split('\n')
+      .filter((line) => line.trim());
+    assert(
+      lines.length === 1 && /^NAME\s/.test(lines[0]),
+      'Unexpected loaded model; no inference was requested',
+    );
   };
   let result;
   try {
@@ -182,27 +267,63 @@ export async function prepare({ smoke = false } = {}) {
     });
     if (!smoke) {
       outbound = `alext-bench-${randomUUID()}`;
-      run(['network', 'create', '--driver=bridge', '--label', `${ownerLabel}=${ownerValue}`, outbound]);
-      console.log(`Downloading only ${model}: ${(metadata.bytes / 1e9).toFixed(2)} GB of model data.`);
+      run([
+        'network',
+        'create',
+        '--driver=bridge',
+        '--label',
+        `${ownerLabel}=${ownerValue}`,
+        outbound,
+      ]);
+      console.log(
+        `Downloading only ${model}: ${(metadata.bytes / 1e9).toFixed(2)} GB of model data.`,
+      );
       await temporary(outbound, {}, async (id) => {
         await ready(id);
-        const df = run(['exec', id, '/bin/df', '-Pk', '/models']).trim().split('\n').at(-1).trim().split(/\s+/);
-        assert(Number(df[3]) * 1024 >= 2 * metadata.bytes + GiB, 'Insufficient Docker VM disk space');
+        const df = run(['exec', id, '/bin/df', '-Pk', '/models'])
+          .trim()
+          .split('\n')
+          .at(-1)
+          .trim()
+          .split(/\s+/);
+        assert(
+          Number(df[3]) * 1024 >= 2 * metadata.bytes + GiB,
+          'Insufficient Docker VM disk space',
+        );
         const sockets = run(['exec', id, '/bin/cat', '/proc/net/tcp', '/proc/net/tcp6']);
-        const listeners = sockets.split('\n').map((row) => row.trim().split(/\s+/)).filter((row) => row[3] === '0A' && row[1]?.endsWith(':2CAA'));
-        assert(listeners.length === 1 && listeners[0][1] === '0100007F:2CAA', 'Loader API is not exclusively on container loopback');
+        const listeners = sockets
+          .split('\n')
+          .map((row) => row.trim().split(/\s+/))
+          .filter((row) => row[3] === '0A' && row[1]?.endsWith(':2CAA'));
+        assert(
+          listeners.length === 1 && listeners[0][1] === '0100007F:2CAA',
+          'Loader API is not exclusively on container loopback',
+        );
         noLoadedModels(id);
         let diskWatch;
         try {
           await new Promise((resolve, reject) => {
-            pullProcess = spawn('docker', ['--context', context, 'exec', id, '/bin/ollama', 'pull', model], { stdio: ['ignore', 'inherit', 'inherit'], timeout: 30 * 60 * 1000 });
+            pullProcess = spawn(
+              'docker',
+              ['--context', context, 'exec', id, '/bin/ollama', 'pull', model],
+              { stdio: ['ignore', 'inherit', 'inherit'], timeout: 30 * 60 * 1000 },
+            );
             diskWatch = setInterval(() => {
-              try { if (macFreeBytes() < 12 * GiB) pullProcess.kill('SIGTERM'); } catch { pullProcess.kill('SIGTERM'); }
+              try {
+                if (macFreeBytes() < 12 * GiB) pullProcess.kill('SIGTERM');
+              } catch {
+                pullProcess.kill('SIGTERM');
+              }
             }, 3000);
             pullProcess.once('error', reject);
-            pullProcess.once('exit', (code) => code === 0 ? resolve() : reject(new Error('Model download interrupted or failed')));
+            pullProcess.once('exit', (code) =>
+              code === 0 ? resolve() : reject(new Error('Model download interrupted or failed')),
+            );
           });
-        } finally { clearInterval(diskWatch); pullProcess = null; }
+        } finally {
+          clearInterval(diskWatch);
+          pullProcess = null;
+        }
         noLoadedModels(id);
       });
       run(['network', 'rm', outbound]);
@@ -211,33 +332,83 @@ export async function prepare({ smoke = false } = {}) {
     result = await temporary('none', { readOnlyModels: true }, async (id) => {
       await ready(id);
       noLoadedModels(id);
-      if (smoke) return { status: 'arm64-container-smoke-passed', inferenceRun: false, modelDownloaded: false };
+      if (smoke)
+        return {
+          status: 'arm64-container-smoke-passed',
+          inferenceRun: false,
+          modelDownloaded: false,
+        };
       const localRaw = run(['exec', id, '/bin/cat', manifestPath]);
       const localManifest = JSON.parse(localRaw);
-      assert.deepEqual(localManifest, metadata.manifest, 'Registry tag changed during download; model must be reviewed');
+      assert.deepEqual(
+        localManifest,
+        metadata.manifest,
+        'Registry tag changed during download; model must be reviewed',
+      );
       const digest = run(['exec', id, '/usr/bin/sha256sum', manifestPath]).split(/\s+/)[0];
       assert(/^[a-f0-9]{64}$/.test(digest), 'Invalid stored model digest');
       console.log('Download finished. Verifying stored model files without network access.');
       for (const part of metadata.parts) {
         const path = `/models/blobs/${part.digest.replace(':', '-')}`;
-        assert.equal(Number(run(['exec', id, '/usr/bin/stat', '-c', '%s', path])), part.size, 'Stored model file size mismatch');
-        const actual = run(['exec', id, '/usr/bin/sha256sum', path], { timeout: 180000 }).split(/\s+/)[0];
+        assert.equal(
+          Number(run(['exec', id, '/usr/bin/stat', '-c', '%s', path])),
+          part.size,
+          'Stored model file size mismatch',
+        );
+        const actual = run(['exec', id, '/usr/bin/sha256sum', path], { timeout: 180000 }).split(
+          /\s+/,
+        )[0];
         assert.equal(actual, part.digest.slice(7), 'Stored model checksum mismatch');
       }
       const configPath = `/models/blobs/${localManifest.config.digest.replace(':', '-')}`;
       const config = JSON.parse(run(['exec', id, '/bin/cat', configPath]));
-      assert(!config.remote_host && !config.remote_model && config.model_format === 'gguf', 'Remote or non-GGUF model refused');
+      assert(
+        !config.remote_host && !config.remote_model && config.model_format === 'gguf',
+        'Remote or non-GGUF model refused',
+      );
       noLoadedModels(id);
-      return { status: 'model-prepared', image, model, volume, modelDigest: digest, registryManifestDigest: metadata.registryDigest, modelBytes: metadata.bytes, limits, downloadedFilesVerified: metadata.parts.length, readOnlyOfflineStartupVerified: true, noModelsLoaded: true, inferenceRun: false, nativeOllamaChanged: false, publicPortsPublished: false, macFreeBeforeBytes: freeBefore };
+      return {
+        status: 'model-prepared',
+        image,
+        model,
+        volume,
+        modelDigest: digest,
+        registryManifestDigest: metadata.registryDigest,
+        modelBytes: metadata.bytes,
+        limits,
+        downloadedFilesVerified: metadata.parts.length,
+        readOnlyOfflineStartupVerified: true,
+        noModelsLoaded: true,
+        inferenceRun: false,
+        nativeOllamaChanged: false,
+        publicPortsPublished: false,
+        macFreeBeforeBytes: freeBefore,
+      };
     });
   } finally {
     process.removeListener('SIGINT', onSignal);
     process.removeListener('SIGTERM', onSignal);
-    for (const id of owned) { try { run(['rm', '--force', id]); } catch { console.error('STOP: A temporary benchmark container needs cleanup.'); } }
-    if (outbound) { try { run(['network', 'rm', outbound]); } catch { console.error('STOP: A temporary benchmark network needs cleanup.'); } }
+    for (const id of owned) {
+      try {
+        run(['rm', '--force', id]);
+      } catch {
+        console.error('STOP: A temporary benchmark container needs cleanup.');
+      }
+    }
+    if (outbound) {
+      try {
+        run(['network', 'rm', outbound]);
+      } catch {
+        console.error('STOP: A temporary benchmark network needs cleanup.');
+      }
+    }
   }
   assert(!interrupt, 'Preparation interrupted');
-  assert.equal(run(['ps', '-aq', '--filter', `volume=${volume}`]), '', 'A benchmark container remains; stop before proceeding');
+  assert.equal(
+    run(['ps', '-aq', '--filter', `volume=${volume}`]),
+    '',
+    'A benchmark container remains; stop before proceeding',
+  );
   result.temporaryContainersRemoved = true;
   result.recordedAt = new Date().toISOString();
   if (!smoke) {
@@ -257,11 +428,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   try {
     if (process.argv[2] === '--prepare') await prepare();
     else if (process.argv[2] === '--smoke') await prepare({ smoke: true });
-    else if (process.argv[2] === '--metadata-only') console.log(JSON.stringify(await registryManifest(), null, 2));
+    else if (process.argv[2] === '--metadata-only')
+      console.log(JSON.stringify(await registryManifest(), null, 2));
     else throw new Error('Use --prepare on the approved Mac mini');
   } catch (error) {
-    console.error(`STOP: ${error?.code === 'ERR_ASSERTION' ? error.message.split('\n')[0] : 'Model preparation did not finish'}`);
-    console.error('Existing applications and native Ollama were not changed. Model volume retained; do not prune or reset Docker.');
+    console.error(
+      `STOP: ${error?.code === 'ERR_ASSERTION' ? error.message.split('\n')[0] : 'Model preparation did not finish'}`,
+    );
+    console.error(
+      'Existing applications and native Ollama were not changed. Model volume retained; do not prune or reset Docker.',
+    );
     process.exitCode = 1;
   }
 }

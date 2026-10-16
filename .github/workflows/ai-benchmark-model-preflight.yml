@@ -4,7 +4,10 @@ on:
     paths:
       - '.github/workflows/ai-benchmark-model-preflight.yml'
       - 'ai/scripts/prepare-benchmark-model.mjs'
+      - 'ai/scripts/benchmark-isolated.mjs'
       - 'ai/test/benchmark-model.test.mjs'
+      - 'ai/test/benchmark-manifest.test.mjs'
+      - 'ai/test/benchmark-isolated.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,7 +31,7 @@ jobs:
         run: |
           mkdir -p reports/model-preparation
           npm ci --ignore-scripts --no-fund
-          node --test test/benchmark-model.test.mjs
+          node --test test/benchmark-model.test.mjs test/benchmark-manifest.test.mjs test/benchmark-isolated.test.mjs
           ./node_modules/.bin/prettier scripts/prepare-benchmark-model.mjs > reports/model-preparation/prepare-benchmark-model.mjs
           ./node_modules/.bin/prettier test/benchmark-model.test.mjs > reports/model-preparation/benchmark-model.test.mjs
           ./node_modules/.bin/prettier docs/benchmark-model-preparation.md > reports/model-preparation/benchmark-model-preparation.md
@@ -85,6 +88,12 @@ jobs:
           }
           JS
           git rev-parse HEAD > reports/model-preparation/tested-source.txt
+          git diff --exit-code
+      - name: Verify the offline benchmark HTTP relay without model inference
+        working-directory: ai
+        run: |
+          set -euo pipefail
+          node --max-old-space-size=128 scripts/benchmark-isolated.mjs --smoke | tee reports/model-preparation/offline-http-smoke.txt
           git diff --exit-code
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

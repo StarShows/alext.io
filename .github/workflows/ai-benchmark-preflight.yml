@@ -1,0 +1,40 @@
+name: AI benchmark image preflight
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ai-benchmark-preflight.yml'
+      - 'ai/scripts/prepare-benchmark-image.mjs'
+      - 'ai/test/benchmark-image.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ai-benchmark-preflight-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.20.0'
+      - name: Test metadata selection and local-endpoint checks
+        run: node --test ai/test/benchmark-image.test.mjs
+      - name: Inspect official ARM64 image metadata without pulling image or model layers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ai/reports
+          node ai/scripts/prepare-benchmark-image.mjs --metadata-only | tee ai/reports/benchmark-image-metadata.json
+          git diff --exit-code
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ai-benchmark-image-metadata
+          path: ai/reports/benchmark-image-metadata.json
+          retention-days: 7

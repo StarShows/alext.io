@@ -25,16 +25,32 @@ jobs:
           node-version: '24.20.0'
       - name: Test metadata selection and local-endpoint checks
         run: node --test ai/test/benchmark-image.test.mjs
-      - name: Inspect official ARM64 image metadata without pulling image or model layers
+      - name: Produce formatter previews without modifying committed source
+        working-directory: ai
+        run: |
+          npm ci --ignore-scripts --no-fund
+          mkdir -p reports
+          ./node_modules/.bin/prettier scripts/prepare-benchmark-image.mjs > reports/prepare-benchmark-image.mjs
+          ./node_modules/.bin/prettier test/benchmark-image.test.mjs > reports/benchmark-image.test.mjs
+      - name: Inspect official ARM64 metadata without downloading image or model layers
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p ai/reports
-          node ai/scripts/prepare-benchmark-image.mjs --metadata-only | tee ai/reports/benchmark-image-metadata.json
+          node --input-type=module <<'JS' | tee ai/reports/benchmark-image-metadata.json
+          import { execFileSync } from 'node:child_process';
+          import { selectArm64 } from './ai/scripts/prepare-benchmark-image.mjs';
+          const read = ref => JSON.parse(execFileSync('docker', ['buildx','imagetools','inspect','--raw',ref], {encoding:'utf8',timeout:90000}));
+          const tag = 'ollama/ollama:0.40.4';
+          const digest = selectArm64(read(tag));
+          const reference = `ollama/ollama@${digest}`;
+          const manifest = read(reference);
+          const compressedBytes = [...manifest.layers,manifest.config].reduce((n,x) => n+x.size,0);
+          console.log(JSON.stringify({tag,reference,platform:'linux/arm64',compressedBytes,layerSizes:manifest.layers.map(x=>x.size),note:'Metadata only; no image pulled and no inference performed.'},null,2));
+          JS
           git diff --exit-code
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: ai-benchmark-image-metadata
-          path: ai/reports/benchmark-image-metadata.json
+          path: ai/reports/
           retention-days: 7

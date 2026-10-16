@@ -1,0 +1,51 @@
+name: AI model preparation checks
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ai-benchmark-model-preflight.yml'
+      - 'ai/scripts/prepare-benchmark-model.mjs'
+      - 'ai/test/benchmark-model.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ai-model-preparation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  prepare-checks:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.20.0'
+      - name: Test preparation controls and preserve formatter previews
+        working-directory: ai
+        run: |
+          mkdir -p reports/model-preparation
+          npm ci --ignore-scripts --no-fund
+          node --test test/benchmark-model.test.mjs
+          ./node_modules/.bin/prettier scripts/prepare-benchmark-model.mjs > reports/model-preparation/prepare-benchmark-model.mjs
+          ./node_modules/.bin/prettier test/benchmark-model.test.mjs > reports/model-preparation/benchmark-model.test.mjs
+          ./node_modules/.bin/prettier docs/benchmark-model-preparation.md > reports/model-preparation/benchmark-model-preparation.md
+      - name: Read official model metadata only
+        working-directory: ai
+        run: node scripts/prepare-benchmark-model.mjs --metadata-only > reports/model-preparation/model-metadata.json
+      - name: Verify the exact ARM64 image can start with offline read-only model storage
+        working-directory: ai
+        run: |
+          set -euo pipefail
+          docker pull --platform linux/arm64 ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c
+          node scripts/prepare-benchmark-model.mjs --smoke | tee reports/model-preparation/arm64-smoke.txt
+          git rev-parse HEAD > reports/model-preparation/tested-source.txt
+          git diff --exit-code
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ai-model-preparation-evidence
+          path: ai/reports/model-preparation/
+          retention-days: 7

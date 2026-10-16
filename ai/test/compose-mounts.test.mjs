@@ -65,7 +65,10 @@ function probeWithFlags(flagsForMount) {
 }
 
 test('runtime mount probes accept extra noexec restrictions on every service', () => {
-  smokeComposeMounts(fixture(), probeWithFlags(() => 'rw,nosuid,nodev,noexec'));
+  smokeComposeMounts(
+    fixture(),
+    probeWithFlags(() => 'rw,nosuid,nodev,noexec'),
+  );
 });
 
 test('runtime mount probes permit execution only where noexec was not required', () => {
@@ -77,7 +80,11 @@ test('runtime mount probes permit execution only where noexec was not required',
 
 test('runtime mount probes still reject missing required security flags', () => {
   for (const flags of ['rw,nosuid,nodev', 'rw,nodev,noexec', 'rw,nosuid,noexec']) {
-    const probe = () => smokeComposeMounts(fixture(), probeWithFlags(() => flags));
+    const probe = () =>
+      smokeComposeMounts(
+        fixture(),
+        probeWithFlags(() => flags),
+      );
     assert.throws(probe, { code: 'ERR_ASSERTION' });
   }
 });

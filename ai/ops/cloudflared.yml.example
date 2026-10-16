@@ -1,0 +1,15 @@
+tunnel: REPLACE_TUNNEL_UUID
+credentials-file: /run/secrets/tunnel_credentials
+metrics: 127.0.0.1:2000
+loglevel: warn
+transport-loglevel: warn
+ingress:
+  - hostname: ai.alext.io
+    path: ^/v1/(session|chat(/stream)?|health)$
+    service: http://10.97.0.3:18080
+    originRequest:
+      httpHostHeader: ai.alext.io
+      connectTimeout: 5s
+      keepAliveConnections: 8
+      keepAliveTimeout: 30s
+  - service: http_status:404

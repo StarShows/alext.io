@@ -1,0 +1,51 @@
+import { readFile, stat } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+for (const key of ['NODE_IMAGE', 'OLLAMA_IMAGE', 'CLOUDFLARED_IMAGE'])
+  assert.match(
+    process.env[key] ?? '',
+    /^[a-z0-9./_-]+:[a-zA-Z0-9_.-]+@sha256:[a-f0-9]{64}$/,
+    `Pin ${key} to an approved immutable digest`,
+  );
+assert.match(process.env.OLLAMA_MODEL ?? '', /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{1,79}$/);
+assert(!/cloud/i.test(process.env.OLLAMA_MODEL));
+assert.match(process.env.OLLAMA_MODEL_DIGEST ?? '', /^(sha256:)?[a-f0-9]{64}$/);
+assert.match(process.env.GATEWAY_IMAGE ?? '', /^alext-ai-gateway:[a-f0-9]{40}$/);
+assert.match(process.env.OLLAMA_MEMORY_LIMIT ?? '', /^[1-9][0-9]*[gm]$/);
+assert(Number(process.env.OLLAMA_CPUS) >= 1 && Number(process.env.OLLAMA_CPUS) <= 4);
+const directory = new URL('../secrets/', import.meta.url);
+const permissions = (await stat(directory)).mode & 0o777;
+assert.equal(permissions, 0o700, 'Secret directory must be accessible only to its owner');
+for (const name of ['turnstile-secret', 'tunnel-credentials.json'])
+  assert((await stat(new URL(name, directory))).isFile(), 'Required secret file is missing');
+const secret = (await readFile(new URL('turnstile-secret', directory), 'utf8')).trim();
+assert(
+  secret.length >= 20 && !/^[123]x000/.test(secret),
+  'Production Turnstile credentials are required',
+);
+const tunnel = JSON.parse(await readFile(new URL('tunnel-credentials.json', directory), 'utf8'));
+assert.equal(
+  tunnel.TunnelID,
+  process.env.TUNNEL_ID,
+  'Tunnel credential and configuration IDs differ',
+);
+assert.equal(typeof tunnel.TunnelSecret, 'string');
+assert(
+  (await readFile(new URL('../ops/generated/cloudflared.yml', import.meta.url), 'utf8')).includes(
+    'service: http_status:404',
+  ),
+);
+const approval = JSON.parse(
+  await readFile(new URL('../ops/approval.json', import.meta.url), 'utf8'),
+);
+for (const field of [
+  'hardwareReviewed',
+  'networkRangesReviewed',
+  'containerRuntimeApproved',
+  'memoryBudgetReviewed',
+  'localModelEvaluated',
+  'ingressApproved',
+])
+  assert.equal(approval[field], true, `Owner approval/evidence required: ${field}`);
+console.log(
+  'Local configuration and explicit approval record are present. This is not proof of live network security or production verification.',
+);

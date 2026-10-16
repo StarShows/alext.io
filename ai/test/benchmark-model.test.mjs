@@ -36,6 +36,10 @@ function inspection(root = false, readOnlyModels = false) {
       NanoCpus: 4000000000,
       PidsLimit: 128,
       RestartPolicy: { Name: 'no' },
+      LogConfig: {
+        Type: 'local',
+        Config: { 'max-size': '1m', 'max-file': '1', compress: 'false' },
+      },
       CapDrop: ['ALL'],
       CapAdd: root ? ['CHOWN'] : null,
       SecurityOpt: ['no-new-privileges'],
@@ -99,6 +103,7 @@ test('all stage containers have fixed resource ceilings, no published ports or h
       '--memory-swap=4g',
       '--cpus=4',
       '--restart=no',
+      '--log-opt=compress=false',
     ])
       assert(args.includes(flag));
     assert(!args.some((a) => /^(-p|-P|--publish|--privileged|--pid=host|--network=host)$/.test(a)));
@@ -174,4 +179,12 @@ test('capability validation normalizes Docker CAP_ prefixes without allowing ext
   assert.doesNotThrow(() => verifyContainer(value, 'none', { root: true }));
   value.HostConfig.CapAdd.push('CAP_SYS_ADMIN');
   assert.throws(() => verifyContainer(value, 'none', { root: true }));
+});
+
+test('single-file logging rejects implicit compression and missing disk bounds', () => {
+  for (const key of ['max-size', 'max-file', 'compress']) {
+    const value = inspection();
+    delete value.HostConfig.LogConfig.Config[key];
+    assert.throws(() => verifyContainer(value, 'none'));
+  }
 });

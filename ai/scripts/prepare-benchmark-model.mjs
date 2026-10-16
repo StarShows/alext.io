@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 export const image =
   'ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c';
 export const model = 'qwen3.5:2b-q4_K_M';
+const approvedModelManifest = '1e2d21a4f03ab9e4a9c1976a4b7e88f21de61d65f2c5485d8fde8942be73f1e7';
 export const volume = 'alext-ai-benchmark-qwen35-2b';
 const ownerLabel = 'io.alext.benchmark';
 const ownerValue = 'qwen35-2b-v1';
@@ -87,6 +88,7 @@ export function containerArgs(name, network, { root = false, readOnlyModels = fa
     '--log-driver=local',
     '--log-opt=max-size=1m',
     '--log-opt=max-file=1',
+    '--log-opt=compress=false',
     '--tmpfs=/tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777',
     '--mount',
     `type=volume,src=${volume},dst=/models,volume-nocopy${readOnlyModels ? ',readonly' : ''}`,
@@ -130,6 +132,10 @@ export function verifyContainer(actual, network, { root = false, readOnlyModels 
   assert.equal(host.NanoCpus, 4000000000, 'CPU limit not applied');
   assert.equal(host.PidsLimit, limits.pids, 'Process limit not applied');
   assert.equal(host.RestartPolicy.Name, 'no', 'Automatic restart refused');
+  assert.equal(host.LogConfig.Type, 'local', 'Unexpected logging driver');
+  assert.equal(host.LogConfig.Config['max-size'], '1m', 'Log size not bounded');
+  assert.equal(host.LogConfig.Config['max-file'], '1', 'Log count not bounded');
+  assert.equal(host.LogConfig.Config.compress, 'false', 'Single-file logging must not compress');
   assert.deepEqual(host.CapDrop, ['ALL'], 'Capabilities not dropped');
   const addedCaps = (host.CapAdd ?? []).map((name) => name.replace(/^CAP_/, ''));
   assert.deepEqual(addedCaps, root ? ['CHOWN'] : [], 'Unexpected added capability');
@@ -197,6 +203,12 @@ export async function prepare({ smoke = false } = {}) {
     assert.equal(process.env.GITHUB_ACTIONS, 'true', 'Smoke mode is restricted to isolated CI');
   const { run, context } = dockerClient();
   const metadata = smoke ? null : await registryManifest();
+  if (!smoke)
+    assert.equal(
+      metadata.registryDigest,
+      approvedModelManifest,
+      'Model tag changed; review required',
+    );
   const freeBefore = smoke ? null : macFreeBytes();
   if (!smoke)
     assert(

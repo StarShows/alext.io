@@ -26,7 +26,7 @@ test('benchmark image metadata rejects malformed digests and excessive download 
   const bad = { platform, digest: 'latest' };
   assert.throws(() => selectArm64({ manifests: [bad] }));
   assert.equal(compressedSize(manifest), 2048);
-  const large = { schemaVersion: 2, config: layer, layers: [{ digest, size: 3 * 1024 ** 3 }] };
+  const large = { schemaVersion: 2, config: layer, layers: [{ digest, size: 4 * 1024 ** 3 }] };
   assert.throws(() => compressedSize(large));
   assert.throws(() => compressedSize({ ...manifest, layers: [{ digest, size: -1 }] }));
 });

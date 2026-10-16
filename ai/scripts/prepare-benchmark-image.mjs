@@ -8,9 +8,11 @@ import { pathToFileURL } from 'node:url';
 // Image preparation only. This script never creates or starts a container.
 export const repository = 'ollama/ollama';
 export const version = '0.40.4';
+export const approvedReference =
+  'ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c';
 const GiB = 1024 ** 3;
-const maxCompressedBytes = 2 * GiB;
-const minimumFreeBefore = 20 * GiB;
+const maxCompressedBytes = 3 * GiB;
+const minimumFreeBefore = 24 * GiB;
 const minimumFreeAfter = 12 * GiB;
 
 export function selectArm64(index) {
@@ -40,7 +42,7 @@ export function compressedSize(manifest) {
     total += part.size;
     assert(Number.isSafeInteger(total), 'Image size overflow');
   }
-  assert(total <= maxCompressedBytes, 'Image exceeds the 2 GiB compressed-download guard');
+  assert(total <= maxCompressedBytes, 'Image exceeds the 3 GiB compressed-download guard');
   return total;
 }
 
@@ -89,8 +91,12 @@ async function prepare() {
   const runtime = run([...docker, 'info', '--format', '{{.OSType}}/{{.Architecture}}']);
   assert(['linux/aarch64', 'linux/arm64'].includes(runtime), 'Expected a local ARM64 Docker VM');
   const freeBefore = freeBytes();
-  assert(freeBefore >= minimumFreeBefore, 'Stop: fewer than 20 GiB available on the Mac data volume');
+  assert(
+    freeBefore >= minimumFreeBefore,
+    'Stop: fewer than 24 GiB available on the Mac data volume',
+  );
   const metadata = inspectRegistryImage((args) => run([...docker, ...args]));
+  assert.equal(metadata.reference, approvedReference, 'Image tag changed; review required');
   console.log(JSON.stringify(metadata, null, 2));
   console.log(`Mac free space before pull: ${(freeBefore / GiB).toFixed(2)} GiB`);
   console.log('Pulling only the pinned ARM64 image. No model or container is started.');
@@ -116,6 +122,7 @@ async function prepare() {
   const result = {
     ...metadata,
     status: freeAfter >= minimumFreeAfter ? 'image-prepared' : 'stop-low-disk',
+    note: 'Image preparation only. No inference benchmark has been run.',
     imageId: image.Id,
     installedImageBytes: image.Size,
     macFreeBeforeBytes: freeBefore,
@@ -148,7 +155,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     // Do not print captured Docker stderr or credential-related client diagnostics.
     const message = error?.code === 'ERR_ASSERTION' ? error.message : 'Preparation did not finish';
     console.error(`STOP: ${message}`);
-    console.error('No containers were started. Do not prune, reset Docker, or change native Ollama.');
+    console.error(
+      'No containers were started. Do not prune, reset Docker, or change native Ollama.',
+    );
     process.exitCode = 1;
   }
 }

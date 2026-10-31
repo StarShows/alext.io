@@ -1,7 +1,36 @@
 name: Deploy alext.io to Namecheap
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - js/**
+      - images/**
+      - fonts/**
+      - public/css/**
+      - public/files/**
+      - public/fonts/**
+      - public/images/**
+      - scss/**
+      - package.json
+      - package-lock.json
+      - bin/build-css
+      - scripts/deploy/**
+      - tests/**
+      - .github/workflows/deploy-namecheap.yml
   workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Deploy current main, or restore the most recent release'
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+        required: true
+      rollback_id:
+        description: 'For rollback: deployment run ID (e.g. 123456789-1)'
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -11,110 +40,160 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy website
+  build:
+    name: Build release without production secrets
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+    steps:
+      - name: Checkout without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Build and test release
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build-css
+          bash -n scripts/deploy/remote_deploy.sh scripts/deploy/remote_rollback.sh
+          while IFS= read -r -d '' file; do node --check "$file"; done < <(git ls-files -z -- '*.js')
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+          python3 scripts/deploy/package_site.py --out "$RUNNER_TEMP/site-release.tar.gz"
+          cd "$RUNNER_TEMP"
+          sha256sum site-release.tar.gz > site-release.tar.gz.sha256
+      - name: Upload immutable release artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: namecheap-site-release
+          path: |
+            ${{ runner.temp }}/site-release.tar.gz
+            ${{ runner.temp }}/site-release.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
+  deploy:
+    name: Deploy approved release
+    needs: build
+    if: needs.build.result == 'success' && (github.event_name == 'workflow_dispatch' || vars.NC_AUTO_DEPLOY == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment:
+      name: production
+      url: https://alext.io
     env:
       SSH_HOST: ${{ vars.NC_SSH_HOST }}
       SSH_USER: ${{ vars.NC_SSH_USER }}
       SSH_PORT: ${{ vars.NC_SSH_PORT }}
       WEB_ROOT: ${{ vars.NC_WEB_ROOT }}
-
+      RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: Checkout latest code
-        uses: actions/checkout@v4
-
-      - name: Validate configuration and website
+      - name: Checkout deployment scripts
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Retrieve release from this run
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: namecheap-site-release
+          path: ${{ runner.temp }}/release
+      - name: Verify configuration and archive
         shell: bash
         run: |
           set -euo pipefail
-
-          test -s index.html
-          grep -qi '</html>' index.html
-
-          test -n "$SSH_HOST"
-          test -n "$SSH_USER"
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]
           [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
-
-          test "$WEB_ROOT" = "/home/realtorstudio/alext.io"
-
-          echo "Validation passed"
-
-      - name: Configure SSH authentication
+          (( 10#$SSH_PORT >= 1 && 10#$SSH_PORT <= 65535 ))
+          [[ "$WEB_ROOT" == /home/realtorstudio/alext.io ]]
+          (cd "$RUNNER_TEMP/release" && sha256sum -c site-release.tar.gz.sha256)
+      - name: Install pinned SSH host key and deploy key
         shell: bash
         env:
-          DEPLOY_KEY: ${{ secrets.NC_SSH_PRIVATE_KEY }}
+          SSH_KEY: ${{ secrets.NC_SSH_PRIVATE_KEY }}
           KNOWN_HOSTS: ${{ secrets.NC_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || exit 1
           umask 077
-          mkdir -p "$HOME/.ssh"
-
-          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/deploy_key"
-          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-
-          chmod 600 "$HOME/.ssh/deploy_key"
-          chmod 600 "$HOME/.ssh/known_hosts"
-
-      - name: Backup and deploy index.html
+          mkdir -p "$RUNNER_TEMP/ssh"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/ssh/id_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/ssh/id_deploy" "$RUNNER_TEMP/ssh/known_hosts"
+      - name: Deploy with atomic homepage replacement and backups
+        id: ship
         shell: bash
         run: |
           set -euo pipefail
+          SSH_OPTS=(-i "$RUNNER_TEMP/ssh/id_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no)
+          SCP_OPTS=(-i "$RUNNER_TEMP/ssh/id_deploy" -P "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no)
+          remote="$SSH_USER@$SSH_HOST"
+          ssh "${SSH_OPTS[@]}" "$remote" "test -d '$WEB_ROOT' && test -w '$WEB_ROOT' && test \"\$HOME/alext.io\" = '$WEB_ROOT' && umask 077 && mkdir -p \"\$HOME/.alext-deploy/staging/$RELEASE_ID\""
+          scp "${SCP_OPTS[@]}" "$RUNNER_TEMP/release/site-release.tar.gz" "$remote:.alext-deploy/staging/$RELEASE_ID/site.tar.gz"
+          ssh -T "${SSH_OPTS[@]}" "$remote" bash -s -- "$RELEASE_ID" < scripts/deploy/remote_deploy.sh
+      - name: Check public HTTPS homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 https://alext.io/ -o "$RUNNER_TEMP/alext-home.html"
+          grep -qi '</html>' "$RUNNER_TEMP/alext-home.html"
+      - name: Auto-rollback if HTTPS smoke test fails
+        if: failure() && steps.ship.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -T -i "$RUNNER_TEMP/ssh/id_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no "$SSH_USER@$SSH_HOST" bash -s -- "$RELEASE_ID" < scripts/deploy/remote_rollback.sh
+      - name: Delete temporary SSH credentials
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/ssh"
 
-          REMOTE="$SSH_USER@$SSH_HOST"
-          DEPLOY_ID="$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          STAGED="$WEB_ROOT/.index.html.deploy-$DEPLOY_ID"
-
-          SSH_ARGS=(
-            -i "$HOME/.ssh/deploy_key"
-            -p "$SSH_PORT"
-            -o BatchMode=yes
-            -o IdentitiesOnly=yes
-            -o StrictHostKeyChecking=yes
-          )
-
-          SCP_ARGS=(
-            -i "$HOME/.ssh/deploy_key"
-            -P "$SSH_PORT"
-            -o BatchMode=yes
-            -o IdentitiesOnly=yes
-            -o StrictHostKeyChecking=yes
-          )
-
-          echo "Checking destination..."
-
-          ssh "${SSH_ARGS[@]}" "$REMOTE" \
-            "test -d '$WEB_ROOT' &&
-             test -w '$WEB_ROOT' &&
-             test -f '$WEB_ROOT/index.html'"
-
-          echo "Uploading new homepage..."
-
-          scp "${SCP_ARGS[@]}" index.html "$REMOTE:$STAGED"
-
-          LOCAL_SHA=$(sha256sum index.html | awk '{print $1}')
-
-          STAGED_SHA=$(ssh "${SSH_ARGS[@]}" "$REMOTE" \
-            "sha256sum '$STAGED'" | awk '{print $1}')
-
-          test "$LOCAL_SHA" = "$STAGED_SHA"
-
-          echo "Backing up existing homepage..."
-
-          ssh "${SSH_ARGS[@]}" "$REMOTE" \
-            "mkdir -p \"\$HOME/alext-deploy-backups\" &&
-             cp -p '$WEB_ROOT/index.html' \
-             \"\$HOME/alext-deploy-backups/index.html.$DEPLOY_ID\" &&
-             mv '$STAGED' '$WEB_ROOT/index.html'"
-
-          echo "Verifying production file..."
-
-          REMOTE_SHA=$(ssh "${SSH_ARGS[@]}" "$REMOTE" \
-            "sha256sum '$WEB_ROOT/index.html'" | awk '{print $1}')
-
-          test "$LOCAL_SHA" = "$REMOTE_SHA"
-
-          echo "Deployment successful!"
+  rollback:
+    name: Restore latest release backup
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment:
+      name: production
+      url: https://alext.io
+    env:
+      SSH_HOST: ${{ vars.NC_SSH_HOST }}
+      SSH_USER: ${{ vars.NC_SSH_USER }}
+      SSH_PORT: ${{ vars.NC_SSH_PORT }}
+      WEB_ROOT: ${{ vars.NC_WEB_ROOT }}
+      ROLLBACK_ID: ${{ inputs.rollback_id }}
+    steps:
+      - name: Checkout rollback script
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate rollback request
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ROLLBACK_ID" =~ ^[0-9]+-[0-9]+$ ]]
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          (( 10#$SSH_PORT >= 1 && 10#$SSH_PORT <= 65535 ))
+          [[ "$WEB_ROOT" == /home/realtorstudio/alext.io ]]
+      - name: Restore files over verified SSH
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.NC_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.NC_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || exit 1
+          umask 077
+          mkdir -p "$RUNNER_TEMP/ssh"
+          trap 'rm -rf -- "$RUNNER_TEMP/ssh"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/ssh/id_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/ssh/id_deploy" "$RUNNER_TEMP/ssh/known_hosts"
+          ssh -T -i "$RUNNER_TEMP/ssh/id_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no "$SSH_USER@$SSH_HOST" bash -s -- "$ROLLBACK_ID" < scripts/deploy/remote_rollback.sh

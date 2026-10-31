@@ -800,108 +800,6 @@
     .section-tail span { color: var(--cyan); }
 
     /* =====================================================
-       FULL STACK LEARN / ENGINEERING CASE STUDY
-    ===================================================== */
-    .learn-section { padding-top: 4.5rem; padding-bottom: 5.5rem; scroll-margin-top: 100px; }
-    .learn-shell {
-      position: relative; overflow: hidden;
-      border: 1px solid rgba(97,243,255,0.24);
-      border-radius: 18px 50px 18px 50px;
-      background:
-        radial-gradient(circle at 90% 10%,rgba(97,243,255,0.16),transparent 30rem),
-        radial-gradient(circle at 0% 100%,rgba(255,139,212,0.11),transparent 32rem),
-        rgba(255,255,255,0.065);
-      padding: clamp(26px,4.5vw,56px);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-    }
-    .learn-shell::before {
-      content: ""; position: absolute; inset: 0; pointer-events: none;
-      background-image: linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),
-                        linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
-      background-size: 44px 44px;
-      mask-image: radial-gradient(circle at 60% 36%,black,transparent 75%);
-    }
-    .learn-top {
-      position: relative; z-index: 1;
-      display: grid; grid-template-columns: minmax(0,1.1fr) minmax(340px,0.9fr);
-      align-items: center; gap: clamp(26px,4vw,58px);
-    }
-    .learn-intro .section-title { margin-top: 8px; max-width: 740px; }
-    .learn-intro .section-copy { margin-top: 22px; max-width: 730px; }
-    .learn-chips { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 24px; }
-    .learn-chips span {
-      display: inline-block; border: 1px solid rgba(97,243,255,0.20);
-      border-radius: 999px; background: rgba(97,243,255,0.075);
-      color: rgba(235,251,255,0.90); padding: 8px 12px;
-      font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      font-size: 12px; font-weight: 700; letter-spacing: 0.01em;
-    }
-    .learn-intro .section-link-row { margin-top: 28px; }
-    .learn-loop {
-      overflow: hidden; position: relative;
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 14px 34px 14px 34px;
-      background: rgba(3,6,21,0.78);
-      box-shadow: 0 28px 80px rgba(0,0,0,0.24);
-    }
-    .learn-loop-header, .learn-loop-footer {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      padding: 15px 20px; color: rgba(255,255,255,0.55);
-      font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      font-size: 11px; font-weight: 800; letter-spacing: 0.07em;
-    }
-    .learn-loop-header { border-bottom: 1px solid rgba(255,255,255,0.10); }
-    .learn-loop-header strong { color: var(--mint); font-size: 11px; }
-    .learn-loop ol { list-style: none; display: grid; gap: 0; padding: 12px 18px; }
-    .learn-loop li { display: flex; align-items: flex-start; gap: 14px; padding: 15px 6px; }
-    .learn-loop li + li { border-top: 1px solid rgba(255,255,255,0.075); }
-    .learn-loop-index {
-      display: grid; place-items: center; flex: 0 0 35px; width: 35px; height: 35px;
-      border: 1px solid rgba(97,243,255,0.22); border-radius: 10px;
-      background: rgba(97,243,255,0.09); color: var(--cyan);
-      font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      font-size: 12px; font-weight: 800;
-    }
-    .learn-loop li strong { display: block; color: white; font-size: 15px; letter-spacing: 0.04em; }
-    .learn-loop li p { margin-top: 3px; color: var(--muted); font-size: 13px; line-height: 1.4; }
-    .learn-loop-footer { border-top: 1px solid rgba(255,255,255,0.10); color: var(--mint); }
-    .learn-divider {
-      display: flex; align-items: center; gap: 15px; margin: 48px 0 22px;
-      color: var(--cyan); font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      font-size: 12px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
-    }
-    .learn-divider::after { content: ""; flex: 1; height: 1px; background: rgba(255,255,255,0.14); }
-    .learn-tech-grid {
-      position: relative; z-index: 1;
-      display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px;
-    }
-    .learn-tech {
-      position: relative; overflow: hidden; min-height: 190px;
-      border: 1px solid rgba(255,255,255,0.12); border-radius: 14px 28px 14px 28px;
-      background: rgba(3,6,21,0.43); padding: 24px;
-      transition: border-color 240ms ease, transform 240ms var(--ease-spring);
-    }
-    .learn-tech:hover { border-color: rgba(97,243,255,0.46); transform: translateY(-3px); }
-    .learn-tech span {
-      color: var(--cyan); font-size: 12px; font-weight: 800;
-      font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
-      letter-spacing: 0.09em;
-    }
-    .learn-tech h3 { margin-top: 16px; font-size: clamp(1.14rem,1.8vw,1.5rem); line-height: 1.13; letter-spacing: -0.03em; }
-    .learn-tech p { margin-top: 10px; color: var(--muted); font-size: 0.94rem; line-height: 1.53; }
-    @media (max-width: 1120px) {
-      .learn-top { grid-template-columns: minmax(0,1fr); }
-      .learn-tech-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-    }
-    @media (max-width: 820px) {
-      .learn-shell { border-radius: 14px 32px 14px 32px; }
-      .learn-tech-grid { grid-template-columns: 1fr; }
-      .learn-loop-header, .learn-loop-footer { flex-wrap: wrap; }
-      .learn-divider { margin-top: 32px; }
-    }
-
-    /* =====================================================
        AI SECTION
     ===================================================== */
     .ai-section { padding-top: 8rem; }
@@ -1472,7 +1370,7 @@
             <div class="section-link-row">
               <a class="micro-link primary-micro magnetic" href="https://www.Realtor-Studio.com" target="_blank" rel="noreferrer">Realtor Studio ↗</a>
               <a class="micro-link magnetic" href="https://dinnerradar.com/" target="_blank" rel="noopener noreferrer">DinnerRadar ↗</a>
-              <a class="micro-link magnetic" href="#learn">Learning lab ↓</a>
+              <a class="micro-link magnetic" href="https://alext.io/learn/" target="_blank" rel="noopener noreferrer">Full Stack Learn ↗</a>
               <a class="micro-link magnetic" href="https://www.JustGetCreamed.com" target="_blank" rel="noreferrer">Creamed ↗</a>
               <a class="micro-link magnetic" href="https://www.choptsalad.com/" target="_blank" rel="noreferrer">CHOPT checkout ↗</a>
               <a class="micro-link magnetic" href="#" data-resume-link target="_blank" rel="noreferrer">Resume ↗</a>
@@ -1484,72 +1382,6 @@
           <p class="section-tail reveal">
             The public surfaces are just what I can show without an NDA. <span>Private enterprise systems, healthcare integrations, payment flows, dashboards, automations, and more are all available to walk through when the conversation warrants it.</span>
           </p>
-        </div>
-      </section>
-
-      <!-- ===================== FULL STACK LEARN ===================== -->
-      <section class="section learn-section" id="learn" aria-labelledby="learn-title">
-        <div class="learn-shell reveal">
-          <div class="learn-top">
-            <div class="learn-intro">
-              <p class="section-kicker">Featured build / interactive learning platform</p>
-              <h2 class="section-title" id="learn-title">Full Stack Learn.<br><span class="gradient-text">Small steps. Real skills.</span></h2>
-              <p class="section-copy">I built a coding practice lab to make learning software engineering feel less like cramming and more like making progress. Short challenges, immediate feedback, and a repeatable recall, write, test, and retry loop turn JavaScript and full-stack concepts into hands-on practice.</p>
-              <div class="learn-chips" aria-label="Learning lab capabilities">
-                <span>Interactive code exercises</span>
-                <span>Progress &amp; XP</span>
-                <span>Instant feedback</span>
-                <span>Review &amp; retry</span>
-              </div>
-              <div class="section-link-row">
-                <a class="micro-link primary-micro magnetic" href="https://alext.io/learn/" target="_blank" rel="noopener noreferrer">Try the live lab ↗</a>
-                <a class="micro-link magnetic" href="#learn-stack">Explore the stack ↓</a>
-              </div>
-            </div>
-            <aside class="learn-loop" aria-label="Full Stack Learn practice loop">
-              <div class="learn-loop-header"><span>LEARNING ENGINE / PRACTICE LOOP</span><strong>01 → 04</strong></div>
-              <ol>
-                <li><span class="learn-loop-index">01</span><div><strong>RECALL</strong><p>Start with what you remember, not the answer.</p></div></li>
-                <li><span class="learn-loop-index">02</span><div><strong>WRITE</strong><p>Work through bite-sized code challenges.</p></div></li>
-                <li><span class="learn-loop-index">03</span><div><strong>TEST</strong><p>Get feedback you can act on immediately.</p></div></li>
-                <li><span class="learn-loop-index">04</span><div><strong>RETRY</strong><p>Revisit weak spots and track improvement.</p></div></li>
-              </ol>
-              <div class="learn-loop-footer"><span>LESSON STATE / PROGRESS</span><span>↳ PERSISTED</span></div>
-            </aside>
-          </div>
-          <div class="learn-divider" id="learn-stack">The technology behind it</div>
-          <div class="learn-tech-grid" aria-label="Full Stack Learn technology stack">
-            <article class="learn-tech">
-              <span>01 / FRONTEND</span>
-              <h3>React + JavaScript</h3>
-              <p>Interactive lessons, coding challenges, animations, feedback, and a responsive interface built to keep the focus on writing code.</p>
-            </article>
-            <article class="learn-tech">
-              <span>02 / APP RUNTIME</span>
-              <h3>Node.js 24</h3>
-              <p>A server-side application with learning and account APIs, deployed under <code>/learn</code> through Namecheap's Node.js hosting.</p>
-            </article>
-            <article class="learn-tech">
-              <span>03 / PERSISTENCE</span>
-              <h3>SQLite</h3>
-              <p>Private, persistent lesson state, attempts, completion history, and XP so progress carries across practice sessions.</p>
-            </article>
-            <article class="learn-tech">
-              <span>04 / IDENTITY</span>
-              <h3>OAuth integration</h3>
-              <p>Google and Apple sign-in integration points support an account-based learning experience with saved progress.</p>
-            </article>
-            <article class="learn-tech">
-              <span>05 / ASSISTANCE</span>
-              <h3>Browser-side WebLLM</h3>
-              <p>An optional in-browser AI assistance path for hints and explanations, designed to support practice rather than replace it.</p>
-            </article>
-            <article class="learn-tech">
-              <span>06 / PRODUCT DESIGN</span>
-              <h3>Practice-first UX</h3>
-              <p>Progressive difficulty, short feedback loops, review prompts, and gamified milestones built for deliberate skill development.</p>
-            </article>
-          </div>
         </div>
       </section>
 
@@ -1722,6 +1554,7 @@
       realtor:    "https://www.Realtor-Studio.com",
       creamed:    "https://www.JustGetCreamed.com",
       dinnerRadar:"https://dinnerradar.com/",
+      learn:       "https://alext.io/learn/",
       chopt:      "https://www.choptsalad.com/locations",
       pips:       "https://www.pipsisland.com/",
       alexio:     OLD_SITE_URL
@@ -1807,6 +1640,7 @@
 
     var projectFrames = [
       { label:"Founder-built product", title:"DinnerRadar", url:urls.dinnerRadar, note:"A full-stack dinner concierge I built and launched. One tap recommends a verified-open independent restaurant, or turns ingredients from your fridge into a custom recipe. I own the product end to end, from UX and APIs to data quality, self-hosted AI, and production delivery." },
+      { label:"Engineering learning platform", title:"Full Stack Learn", url:urls.learn, note:"A gamified coding lab built with React and JavaScript, a Node.js 24 application layer, and SQLite-backed learning progress. Short lessons, code validation, XP, and review loops put practice first, with Google/Apple OAuth integration points and optional in-browser WebLLM assistance." },
       { label:"Founder agency",     title:"Realtor Studio",        url:urls.realtor,    note:"Public-facing agency surface for realtor sites, conversion systems, local positioning, and client delivery. The preview is a window into the business, not the whole machine." },
       { label:"Product founder",    title:"Creamed",               url:urls.creamed,    note:"DTC product execution: brand, ecommerce surface, compliance awareness, product operations, and positioning." },
       { label:"Commerce checkout",  title:"CHOPT Salad checkout",  url:urls.chopt,      note:"Contract work through Makeable: React checkout components, Braintree payments, JSON order-object coordination, BrowserStack QA, AWS EC2 releases, production hotfixes. The checkout architecture is the signal." },
@@ -2214,7 +2048,7 @@
   /* ===== SCROLL UI: progress bar + active nav + story steps ===== */
   (function () {
     var progress    = document.querySelector(".reading-progress span");
-    var navTargets  = [].slice.call(document.querySelectorAll("#top,#flow,#proof,#portals,#learn,#ai,#map,#experience,#contact"));
+    var navTargets  = [].slice.call(document.querySelectorAll("#top,#flow,#proof,#portals,#ai,#map,#experience,#contact"));
     var navLinks    = [].slice.call(document.querySelectorAll(".nav-links a[href^='#'],.mobile-menu a[href^='#'],.story-rail a[href^='#']"));
     var storyFlow   = document.getElementById("flow");
     var storySteps  = [].slice.call(document.querySelectorAll(".story-step"));

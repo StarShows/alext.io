@@ -1,0 +1,90 @@
+name: AI service CI
+on:
+  pull_request:
+    paths: ['ai/**', '.github/workflows/ai-*.yml']
+  push:
+    branches: [main]
+    paths: ['ai/**', '.github/workflows/ai-*.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ai-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.20.0'
+      - name: Install locked dependencies
+        working-directory: ai
+        run: npm ci --ignore-scripts --no-fund
+      - name: Check committed formatting without modifying source
+        working-directory: ai
+        run: |
+          if ! npm run format:check; then
+            ./node_modules/.bin/prettier test/compose-mounts.test.mjs | diff -u test/compose-mounts.test.mjs - || true
+            exit 1
+          fi
+      - name: Compile and test gateway, transports and website integration
+        working-directory: ai
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          npm run build
+          node --test --test-reporter=tap test/*.test.mjs | tee reports/unit-integration.tap
+      - name: Runtime security lint
+        working-directory: ai
+        run: npm run lint
+      - name: Dependency security audit
+        working-directory: ai
+        run: npm audit --omit=dev --audit-level=high
+      - name: Install test browsers
+        working-directory: ai
+        run: ./node_modules/.bin/playwright install --with-deps chromium webkit
+      - name: Browser, mobile and accessibility tests
+        working-directory: ai
+        run: |
+          set -euo pipefail
+          node --test --test-reporter=tap test/browser/*.test.mjs | tee reports/browser.tap
+      - name: Build and test hardened gateway container
+        working-directory: ai
+        run: sh scripts/container-smoke.sh
+      - name: Validate Compose and smoke-test its actual temporary mounts
+        working-directory: ai
+        env:
+          NODE_IMAGE: node:24.20.0-bookworm-slim
+          GATEWAY_IMAGE: alext-ai-ci:smoke
+          OLLAMA_IMAGE: ollama/ollama:0.34.0
+          CLOUDFLARED_IMAGE: cloudflare/cloudflared:2026.10.0
+          OLLAMA_MODEL: fixture:1b
+          OLLAMA_MODEL_DIGEST: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          OLLAMA_MEMORY_LIMIT: 2g
+          OLLAMA_CPUS: '1'
+        run: |
+          docker compose --profile maintenance config --quiet
+          docker compose --profile maintenance config --format json > reports/compose-fixture.json
+          node -e "const c=require('./reports/compose-fixture.json'),a=require('node:assert/strict');for(const s of ['gateway','ollama','tunnel']){a(!c.services[s].ports?.length);a.equal(c.services[s].read_only,true);a(c.services[s].cap_drop.includes('ALL'));}a.equal(c.networks.inference.internal,true);a.deepEqual(Object.keys(c.services.ollama.networks),['inference']);console.log('Compose isolation assertions passed; these are fixture resource values, not owner-approved budgets.');"
+          node scripts/compose-mounts.mjs reports/compose-fixture.json
+      - name: Record exact committed source and verification evidence
+        if: always()
+        run: |
+          mkdir -p ai/reports
+          cp ai/package-lock.json ai/reports/package-lock.json
+          git rev-parse HEAD > ai/reports/tested-source.txt
+          node --version > ai/reports/node-version.txt
+          git diff --exit-code
+          git diff --cached --exit-code
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ai-verification
+          path: ai/reports/
+          retention-days: 7

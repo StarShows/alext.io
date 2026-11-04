@@ -62,6 +62,12 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/brand-venv"
           "$RUNNER_TEMP/brand-venv/bin/python" -m pip install --disable-pip-version-check --no-deps --only-binary=:all: Pillow==11.3.0
           "$RUNNER_TEMP/brand-venv/bin/python" scripts/deploy/generate_brand_assets.py
+      - name: Capture current project websites for local fallback previews
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/brand-venv/bin/python" -m pip install --disable-pip-version-check --only-binary=:all: playwright==1.56.0
+          "$RUNNER_TEMP/brand-venv/bin/python" scripts/deploy/generate_portal_previews.py --mode capture
       - name: Build and test release
         shell: bash
         run: |
@@ -70,7 +76,7 @@ jobs:
           npm run build-css
           bash -n scripts/deploy/remote_deploy.sh scripts/deploy/remote_rollback.sh
           while IFS= read -r -d '' file; do node --check "$file"; done < <(git ls-files -z -- '*.js')
-          python3 -m unittest discover -s tests -p 'test_*.py' -v
+          "$RUNNER_TEMP/brand-venv/bin/python" -m unittest discover -s tests -p 'test_*.py' -v
           python3 scripts/deploy/package_site.py --out "$RUNNER_TEMP/site-release.tar.gz"
           cd "$RUNNER_TEMP"
           sha256sum site-release.tar.gz > site-release.tar.gz.sha256
@@ -173,6 +179,29 @@ jobs:
               assert len(asset) > 100, f"Empty {name} payload"
           svg = (root / "favicon.svg").read_text(encoding="utf-8")
           assert "<svg" in svg and "AT monogram" in svg, "Invalid SVG favicon"
+          PY
+      - name: Verify same-origin project previews over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for slug in dinnerradar realtor-studio creamed chopt resume alext dinner; do
+            curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/images/previews/$slug.webp?v=$GITHUB_SHA" -o "$RUNNER_TEMP/preview-$slug.webp"
+          done
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/images/previews/capture-status.json?v=$GITHUB_SHA" -o "$RUNNER_TEMP/capture-status.json"
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          directory = Path(sys.argv[1])
+          status = json.loads((directory / "capture-status.json").read_text())
+          slugs = ("dinnerradar", "realtor-studio", "creamed", "chopt", "resume", "alext", "dinner")
+          assert set(status["items"]) == set(slugs), "Capture status missing sites"
+          for slug in slugs:
+              image = (directory / ("preview-" + slug + ".webp")).read_bytes()
+              assert len(image) > 5000, "Empty preview: " + slug
+              assert image[:4] == b"RIFF" and image[8:12] == b"WEBP", "Invalid WebP: " + slug
+              assert status["items"][slug]["status"] in ("captured", "unavailable")
+          print("Verified locally served preview images and capture statuses")
           PY
       - name: Auto-rollback if HTTPS smoke test fails
         if: failure() && steps.ship.outcome == 'success'

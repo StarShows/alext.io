@@ -89,6 +89,14 @@
       var key = frame.getAttribute("data-snapshot-key");
       var record = data && data.items && data.items[key];
       if (!record) return;
+      // A capture is refreshed on each approved release. Key the image URL
+      // to that release's timestamp so browsers do not cling to an older
+      // screenshot after a future deployment.
+      var image = frame.querySelector(".portal-snapshot");
+      var version = data && Date.parse(data.generated_at);
+      if (image && Number.isFinite(version) && version > 0) {
+        image.src = "/images/previews/" + key + ".webp?v=" + version;
+      }
       if (record.status === "captured") {
         badge.textContent = "Locally saved website screenshot";
       } else {

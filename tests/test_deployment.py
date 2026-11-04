@@ -145,6 +145,33 @@ class DeploymentTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Missing generated brand assets"):
             self.stage()
 
+    def test_snapshot_archive_includes_only_expected_generated_files(self):
+        paths = [
+            "images/previews/" + slug + ".webp"
+            for slug in ("dinnerradar", "realtor-studio", "creamed",
+                         "chopt", "resume", "alext", "dinner")
+        ]
+        paths.append("images/previews/capture-status.json")
+        for path in paths:
+            write(self.repo, path, b"generated-by-build")
+        write(self.repo, "images/previews/not-allowlisted.webp", b"unsafe")
+        release, names = self.stage()
+        for path in paths:
+            self.assertIn(path, names)
+        self.assertNotIn("images/previews/not-allowlisted.webp", names)
+        with tarfile.open(release) as archive:
+            self.assertIn("site/images/previews/dinnerradar.webp", archive.getnames())
+        self.remote("remote_deploy.sh", "100-1")
+        self.assertTrue((self.web / "images/previews/dinnerradar.webp").exists())
+        self.remote("remote_rollback.sh", "100-1")
+        self.assertFalse((self.web / "images/previews/dinnerradar.webp").exists())
+
+    def test_missing_preview_images_fail_closed(self):
+        write(self.repo, "index.html",
+              b'<html><img src="/images/previews/dinnerradar.webp"></html>')
+        with self.assertRaisesRegex(ValueError, "Missing portal preview assets"):
+            self.stage()
+
     def test_package_rejects_tracked_symlink(self):
         (self.repo / "js" / "evil.js").symlink_to(self.repo / "index.html")
         subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)

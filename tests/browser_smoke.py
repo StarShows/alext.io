@@ -55,10 +55,18 @@ def run():
                 check(page.locator(".nav-links a:visible").count() >= 3,
                       "desktop keeps primary navigation accessible")
                 check(page.locator(".portal-iframe[src]").count() == 0, "third-party iframes are opt-in")
-                check(page.locator("#case-studies .case-study").count() == 3, "three fully readable build stories")
-                check(page.locator("#case-studies .case-flow-step").count() == 12, "architectural flow for all three projects")
+                check(page.locator("#case-studies .case-study").count() == 4, "four fully readable build stories")
+                check(page.locator("#case-studies .case-flow-step").count() == 18, "architectural flow for all four projects")
                 check(page.locator("#build-learn a[href='https://alext.io/learn/']").count() >= 1,
                       "live Learning Lab linked from its case study")
+                check(page.locator("#build-dinnerradar .case-dinner-mode").count() == 2,
+                      "DinnerRadar explains two separate product journeys")
+                check(page.locator("#build-dinnerradar .case-flow-step").count() == 5,
+                      "DinnerRadar architecture explains five major components")
+                check(page.locator("#portalGrid .portal-card").first.locator(
+                    'a[href="#build-dinnerradar"]').count() == 1,
+                      "DinnerRadar public card links to full engineering story")
+
                 check(page.locator("#build-titan").inner_text().find("Airtable") >= 0 and
                       page.locator("#build-titan").inner_text().find("Bedrock") >= 0,
                       "Titan distinguishes Airtable POC from full AI-enabled platform")
@@ -88,10 +96,38 @@ def run():
                 page.locator("#skillSearchInput").fill("Bedrock")
                 page.wait_for_function("""() => {
                     const first = document.querySelector('#skillSearchResults .skill-search-result');
-                    return first && first.textContent.includes('The proof of concept');
+                    return first && first.textContent.includes('The POC proved');
                 }""")
-                check("The proof of concept" in page.locator(".skill-search-result").first.inner_text(),
+                check("The POC proved" in page.locator(".skill-search-result").first.inner_text(),
                       "Bedrock search ranks Titan's real implementation story")
+                page.locator("#skillSearchInput").fill("cost analysis")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('The POC proved');
+                }""")
+                check(page.locator(".skill-search-result").first.count() == 1,
+                      "cost analysis search ranks Titan architecture story")
+                page.locator("#skillSearchInput").fill("schema normalization")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('The POC proved');
+                }""")
+                check(page.locator(".skill-search-result").first.count() == 1,
+                      "schema normalization search surfaces cross-team ETL case study")
+                page.locator("#skillSearchInput").fill("OpenStreetMap")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('One question. Two ways');
+                }""")
+                check("One question. Two ways" in page.locator(".skill-search-result").first.inner_text(),
+                      "restaurant data search ranks the DinnerRadar case study")
+                page.locator("#skillSearchInput").fill("SSE")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('One question. Two ways');
+                }""")
+                check("One question. Two ways" in page.locator(".skill-search-result").first.inner_text(),
+                      "SSE alias finds DinnerRadar recipe progress architecture")
                 page.locator("#skillSearchInput").fill("FHIR")
                 page.wait_for_function("""() => {
                     const first = document.querySelector('#skillSearchResults .skill-search-result');
@@ -119,6 +155,11 @@ def run():
                 page.screenshot(path=str(ROOT / "tests/screenshots/build-story-titan-desktop.png"))
                 page.locator("#build-titan").screenshot(
                     path=str(ROOT / "tests/screenshots/build-story-titan-full.png"))
+                page.locator("#build-dinnerradar").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-dinnerradar-full.png"))
+                check(page.locator("#build-dinnerradar").evaluate(
+                    "(el) => el.scrollWidth <= el.clientWidth + 2"
+                ), "DinnerRadar long-form card fits desktop width")
                 desktop.close()
 
                 mobile = browser.new_context(
@@ -157,6 +198,20 @@ def run():
                 ), "mobile case study is truly visible, not hidden by scroll reveal")
                 check(phone.locator("#build-learn .case-architecture").is_visible(),
                       "mobile learning case study architecture is accessible")
+                phone.locator("#build-dinnerradar").scroll_into_view_if_needed()
+                check(phone.locator("#build-dinnerradar").evaluate(
+                    "(el) => Number(getComputedStyle(el).opacity) > .99 && el.scrollWidth <= el.clientWidth + 2"
+                ), "DinnerRadar story is visible without mobile horizontal overflow")
+                check(phone.locator("#build-dinnerradar .case-dinner-mode").count() == 2,
+                      "two DinnerRadar user journeys remain readable on mobile")
+                phone.locator("#build-dinnerradar").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-dinnerradar-mobile.png"))
+                phone.locator("#build-titan").scroll_into_view_if_needed()
+                check(phone.locator("#build-titan .case-practice").count() == 4,
+                      "Titan architecture, cost, quality and Agile delivery practices render on mobile")
+                check(phone.locator("#build-titan .case-practice-grid").evaluate(
+                    "(el) => el.scrollWidth <= el.clientWidth + 2"
+                ), "Titan engineering practice matrix does not overflow mobile width")
                 phone.screenshot(path=str(ROOT / "tests/screenshots/build-story-learn-mobile.png"))
                 phone.locator("#build-learn").screenshot(
                     path=str(ROOT / "tests/screenshots/build-story-learn-full-mobile.png"))

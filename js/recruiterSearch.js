@@ -22,7 +22,8 @@
     "ts": "typescript", "js": "javascript",
     "postgres": "postgresql", "ci cd": "cicd", "cicd": "cicd",
     "model context protocol": "mcp", "genai": "ai",
-    "d3": "d3js", "d3 js": "d3js", "aws lambda": "lambda"
+    "d3": "d3js", "d3 js": "d3js", "aws lambda": "lambda",
+    "osm": "openstreetmap", "sse": "server sent events", "fts": "fts5"
   };
 
   function normalize(value) {
@@ -58,7 +59,7 @@
       var context = contextSelector ? card.querySelector(contextSelector) : null;
       var title = heading ? heading.textContent.trim() : "";
       if (!title) return;
-      var copy = card.querySelector("p");
+      var copy = type === "Engineering case study" ? card.querySelector(".case-study-deck") : card.querySelector("p");
       var summary = copy ? copy.textContent.trim() : card.textContent.trim();
       var prefix = context ? context.textContent.trim() + " \u00b7 " : "";
       makeRecord(type, prefix + title, summary, card, card.textContent.trim(), weight);

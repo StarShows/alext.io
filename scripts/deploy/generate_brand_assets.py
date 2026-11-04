@@ -2,6 +2,7 @@
 """Create branded icons and a 1200 x 630 JPEG link-preview card, offline."""
 from pathlib import Path
 import math
+import shutil
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -56,6 +57,9 @@ def build_icons():
         OUT / "favicon.ico", format="ICO",
         sizes=[(16, 16), (32, 32), (48, 48), (64, 64)],
     )
+    # Browsers and crawlers may request the conventional root favicon URL.
+    # Keep it byte-identical to the icon referenced by the page metadata.
+    shutil.copyfile(OUT / "favicon.ico", OUT.parent / "favicon.ico")
 
 
 def build_social_card():

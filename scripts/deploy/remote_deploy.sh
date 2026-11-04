@@ -25,7 +25,7 @@ safe_path() {
   local rel="$1" part dir="$web" ext
   case "$rel" in ''|/*|.*|*/.*|*'..'*|*'\'*|*$'\n'*|*$'\r'*) return 1;; esac
   case "$rel" in
-    index.html) ;;
+    index.html|favicon.ico) ;;
     js/*|images/*|fonts/*|public/css/*|public/files/*|public/fonts/*|public/images/*) ;;
     *) return 1 ;;
   esac

@@ -86,11 +86,17 @@ def run():
                 check(page.locator(".skill-search-result").count() >= 1,
                       "less prominent technologies in the complete stack summary are searchable")
                 page.locator("#skillSearchInput").fill("Bedrock")
-                page.locator(".skill-search-result").first.wait_for()
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('The proof of concept');
+                }""")
                 check("The proof of concept" in page.locator(".skill-search-result").first.inner_text(),
                       "Bedrock search ranks Titan's real implementation story")
                 page.locator("#skillSearchInput").fill("FHIR")
-                page.locator(".skill-search-result").first.wait_for()
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('scheduling experience');
+                }""")
                 check("scheduling experience" in page.locator(".skill-search-result").first.inner_text(),
                       "FHIR search surfaces Hoag integration evidence")
                 page.keyboard.press("Escape")

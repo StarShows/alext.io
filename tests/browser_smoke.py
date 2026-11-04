@@ -56,7 +56,7 @@ def run():
                       "desktop keeps primary navigation accessible")
                 check(page.locator(".portal-iframe[src]").count() == 0, "third-party iframes are opt-in")
                 check(page.locator("#case-studies .case-study").count() == 3, "three fully readable build stories")
-                check(page.locator("#case-studies .case-flow-step").count() == 12, "architectural flow for all three projects")
+                check(page.locator("#case-studies .case-flow-step").count() == 13, "architectural flow for all three projects")
                 check(page.locator("#build-learn a[href='https://alext.io/learn/']").count() >= 1,
                       "live Learning Lab linked from its case study")
                 check(page.locator("#build-titan").inner_text().find("Airtable") >= 0 and
@@ -88,10 +88,24 @@ def run():
                 page.locator("#skillSearchInput").fill("Bedrock")
                 page.wait_for_function("""() => {
                     const first = document.querySelector('#skillSearchResults .skill-search-result');
-                    return first && first.textContent.includes('The proof of concept');
+                    return first && first.textContent.includes('The POC proved');
                 }""")
-                check("The proof of concept" in page.locator(".skill-search-result").first.inner_text(),
+                check("The POC proved" in page.locator(".skill-search-result").first.inner_text(),
                       "Bedrock search ranks Titan's real implementation story")
+                page.locator("#skillSearchInput").fill("cost analysis")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('The POC proved');
+                }""")
+                check(page.locator(".skill-search-result").first.count() == 1,
+                      "cost analysis search ranks Titan architecture story")
+                page.locator("#skillSearchInput").fill("schema normalization")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('The POC proved');
+                }""")
+                check(page.locator(".skill-search-result").first.count() == 1,
+                      "schema normalization search surfaces cross-team ETL case study")
                 page.locator("#skillSearchInput").fill("FHIR")
                 page.wait_for_function("""() => {
                     const first = document.querySelector('#skillSearchResults .skill-search-result');
@@ -157,6 +171,12 @@ def run():
                 ), "mobile case study is truly visible, not hidden by scroll reveal")
                 check(phone.locator("#build-learn .case-architecture").is_visible(),
                       "mobile learning case study architecture is accessible")
+                phone.locator("#build-titan").scroll_into_view_if_needed()
+                check(phone.locator("#build-titan .case-practice").count() == 4,
+                      "Titan architecture, cost, quality and Agile delivery practices render on mobile")
+                check(phone.locator("#build-titan .case-practice-grid").evaluate(
+                    "(el) => el.scrollWidth <= el.clientWidth + 2"
+                ), "Titan engineering practice matrix does not overflow mobile width")
                 phone.screenshot(path=str(ROOT / "tests/screenshots/build-story-learn-mobile.png"))
                 phone.locator("#build-learn").screenshot(
                     path=str(ROOT / "tests/screenshots/build-story-learn-full-mobile.png"))

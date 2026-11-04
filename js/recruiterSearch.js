@@ -58,7 +58,7 @@
       var context = contextSelector ? card.querySelector(contextSelector) : null;
       var title = heading ? heading.textContent.trim() : "";
       if (!title) return;
-      var copy = card.querySelector("p");
+      var copy = type === "Engineering case study" ? card.querySelector(".case-study-deck") : card.querySelector("p");
       var summary = copy ? copy.textContent.trim() : card.textContent.trim();
       var prefix = context ? context.textContent.trim() + " \u00b7 " : "";
       makeRecord(type, prefix + title, summary, card, card.textContent.trim(), weight);

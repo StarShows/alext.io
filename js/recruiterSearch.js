@@ -273,7 +273,7 @@
     panel.hidden = true; scrim.hidden = true;
     document.body.classList.remove("skill-search-is-open");
     buttons.forEach(function (button) { button.setAttribute("aria-expanded", "false"); });
-    if (restoreFocus && priorFocus && typeof priorFocus.focus === "function") priorFocus.focus();
+    if (restoreFocus && priorFocus && typeof priorFocus.focus === "function") priorFocus.focus({ preventScroll: true });
   }
   function open(source) {
     if (!panel.hidden) return;

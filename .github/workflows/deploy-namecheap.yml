@@ -150,6 +150,30 @@ jobs:
           set -euo pipefail
           curl --fail --location --silent --show-error --retry 2 --max-time 25 https://alext.io/ -o "$RUNNER_TEMP/alext-home.html"
           grep -qi '</html>' "$RUNNER_TEMP/alext-home.html"
+      - name: Verify favicon and social preview URLs over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for asset in favicon.ico images/favicon.svg images/favicon-32.png images/apple-touch-icon.png images/social-preview.jpg; do
+            curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/$asset?v=20261104" -o "$RUNNER_TEMP/${asset##*/}"
+          done
+          python3 - "$RUNNER_TEMP" <<'PY'
+          from pathlib import Path
+          import sys
+          root = Path(sys.argv[1])
+          signatures = {
+              "favicon.ico": b"\x00\x00\x01\x00",
+              "favicon-32.png": b"\x89PNG\r\n\x1a\n",
+              "apple-touch-icon.png": b"\x89PNG\r\n\x1a\n",
+              "social-preview.jpg": b"\xff\xd8\xff",
+          }
+          for name, signature in signatures.items():
+              asset = (root / name).read_bytes()
+              assert asset.startswith(signature), f"Invalid {name} payload"
+              assert len(asset) > 100, f"Empty {name} payload"
+          svg = (root / "favicon.svg").read_text(encoding="utf-8")
+          assert "<svg" in svg and "AT monogram" in svg, "Invalid SVG favicon"
+          PY
       - name: Auto-rollback if HTTPS smoke test fails
         if: failure() && steps.ship.outcome == 'success'
         shell: bash

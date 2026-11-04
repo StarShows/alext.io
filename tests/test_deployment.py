@@ -117,13 +117,26 @@ class DeploymentTests(unittest.TestCase):
         self.assertEqual((self.web / "public/sites/learning-lab/index.html").read_bytes(), b"live app, keep me")
 
     def test_explicit_generated_assets_are_included_without_git_add(self):
+        write(self.repo, "favicon.ico", b"rendered root icon")
         write(self.repo, "images/social-preview.jpg", b"rendered social preview")
         write(self.repo, "images/favicon.ico", b"rendered browser icon")
         write(self.repo, "images/random-untracked.jpg", b"never deploy me")
         _, names = self.stage()
         self.assertIn("images/social-preview.jpg", names)
         self.assertIn("images/favicon.ico", names)
+        self.assertIn("favicon.ico", names)
         self.assertNotIn("images/random-untracked.jpg", names)
+
+    def test_root_favicon_deploys_and_rolls_back_safely(self):
+        write(self.repo, "favicon.ico", b"new icon")
+        write(self.web, "favicon.ico", b"old icon")
+        self.assertTrue(is_deployable("favicon.ico"))
+        self.assertFalse(is_deployable("favicon.php"))
+        self.stage()
+        self.remote("remote_deploy.sh", "100-1")
+        self.assertEqual((self.web / "favicon.ico").read_bytes(), b"new icon")
+        self.remote("remote_rollback.sh", "100-1")
+        self.assertEqual((self.web / "favicon.ico").read_bytes(), b"old icon")
 
     def test_brand_metadata_requires_complete_asset_set(self):
         write(self.repo, "index.html",

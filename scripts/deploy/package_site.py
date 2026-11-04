@@ -24,7 +24,7 @@ MAX_RELEASE_SIZE = 100 * 1024 * 1024
 # The following files are reproducibly generated in the secret-free CI build.
 # No other untracked file may enter a production release.
 GENERATED_BRAND_ASSETS = frozenset({
-    "images/favicon.ico", "images/favicon-16.png", "images/favicon-32.png",
+    "favicon.ico", "images/favicon.ico", "images/favicon-16.png", "images/favicon-32.png",
     "images/apple-touch-icon.png", "images/icon-192.png", "images/icon-512.png",
     "images/social-preview.jpg",
 })
@@ -39,7 +39,7 @@ def is_deployable(path: str) -> bool:
         return False
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 /._-]*", path):
         return False
-    if path == "index.html":
+    if path in {"index.html", "favicon.ico"}:
         return True
     return any(path.startswith(prefix + "/") and PurePosixPath(path).suffix.lower() in extensions
                for prefix, extensions in ALLOWED.items())

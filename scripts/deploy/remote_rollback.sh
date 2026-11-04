@@ -20,7 +20,7 @@ flock -w 30 9
 safe_path() {
   local rel="$1" node="$web" part
   case "$rel" in ''|/*|.*|*/.*|*'..'*|*'\'*|*$'\n'*|*$'\r'*) return 1;; esac
-  case "$rel" in index.html|js/*|images/*|fonts/*|public/css/*|public/files/*|public/fonts/*|public/images/*) ;; *) return 1;; esac
+  case "$rel" in index.html|favicon.ico|js/*|images/*|fonts/*|public/css/*|public/files/*|public/fonts/*|public/images/*) ;; *) return 1;; esac
   IFS=/ read -r -a components <<< "$rel"
   for part in "${components[@]}"; do
     [[ -n "$part" && "$part" != . && "$part" != .. ]] || return 1

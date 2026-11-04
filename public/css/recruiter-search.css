@@ -242,3 +242,5 @@ mark.recruiter-keyword {
     transform:none!important;
   }
 }
+
+@media(max-width:380px){ .nav {gap:8px;} .brand {gap:7px;} .brand-copy strong {max-width:100px;} }

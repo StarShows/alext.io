@@ -91,7 +91,7 @@
       var element = document.querySelector(pair[0]);
       if (!element) return;
       var heading = element.querySelector("h1,h2");
-      var summary = element.textContent.trim().replace(/\s+/g, " ").slice(0, 1600);
+      var summary = element.textContent.trim().replace(/\s+/g, " ");
       makeRecord("On this page", heading ? heading.textContent.trim() : pair[1],
         summary, element, "", -12);
     });

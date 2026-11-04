@@ -44,6 +44,11 @@ def run():
                 page.locator("#experienceGrid .experience-card").first.wait_for()
                 check(page.locator("#portalGrid .portal-card").count() == 7, "seven portfolio cards")
                 check(page.locator(".portal-snapshot").count() == 7, "seven local preview images")
+                check(page.locator(".nav-actions .btn").evaluate(
+                    "(el) => el.scrollHeight <= el.clientHeight + 1"
+                ), "desktop contact action remains a single line")
+                check(page.locator(".nav-links a:visible").count() >= 3,
+                      "desktop keeps primary navigation accessible")
                 check(page.locator(".portal-iframe[src]").count() == 0, "third-party iframes are opt-in")
                 page.locator(".skill-search-trigger").click()
                 check(page.locator("#skillSearchDialog").is_visible(), "desktop skill finder opens")

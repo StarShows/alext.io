@@ -37,7 +37,7 @@ class BuildStoryTests(unittest.TestCase):
                 self.assertEqual(self.tree.ids[story]["attrs"]["tabindex"], "-1")
                 self.assertIn("#" + story, self.tree.links)
         self.assertEqual(PAGE.count('class="case-architecture"'), 3)
-        self.assertEqual(PAGE.count('class="case-flow-step"'), 11)
+        self.assertEqual(PAGE.count('class="case-flow-step"'), 12)
         self.assertEqual(PAGE.count('class="case-flow-step case-flow-step--split"'), 1)
 
     def test_evidence_and_architecture_are_explained(self):
@@ -48,6 +48,14 @@ class BuildStoryTests(unittest.TestCase):
             self.assertIn(term, learn)
         for term in ("Airtable", "MongoDB", "Snowflake", "ServiceNow", "Bedrock", "MCP", "DAG"):
             self.assertIn(term, titan)
+        for term in ("architecture", "technical documentation", "cost analysis",
+                     "coding standards", "code review", "regression testing",
+                     "Agile", "multiple teams", "schemas", "ETL", "Airtable POC",
+                     "AWS Bedrock", "MCP", "Snowflake", "ServiceNow"):
+            with self.subTest(term=term):
+                self.assertIn(term.casefold(), titan.casefold())
+        self.assertEqual(titan.count('class="case-practice"'), 4)
+        self.assertEqual(titan.count('class="case-flow-step"'), 5)
         for term in ("Epic", "FHIR", "Cloverleaf", "HL7", "React", "Next.js"):
             self.assertIn(term, hoag)
         # Avoid repeating any private server addresses in public case studies.

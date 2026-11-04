@@ -62,7 +62,7 @@
       if (!title) return;
       var copy = type === "Engineering case study" ? card.querySelector(".case-study-deck") : card.querySelector("p");
       var summary = copy ? copy.textContent.trim() : card.textContent.trim();
-      var prefix = context ? context.textContent.trim() + " \u00b7 " : "";
+      var prefix = context && type !== "Engineering case study" ? context.textContent.trim() + " \u00b7 " : "";
       makeRecord(type, prefix + title, summary, card, card.textContent.trim(), weight);
     });
   }

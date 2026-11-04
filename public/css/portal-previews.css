@@ -6,7 +6,7 @@
 }
 .portal-snapshot {
   display:block; width:100%; height:100%; object-fit:cover; object-position:center 35%;
-  transform:translate3d(0,0,0) scale(1.17); transform-origin:center;
+  transform:translate3d(0,0,0) scale(1.14); transform-origin:center;
   filter:saturate(.87) contrast(1.03) brightness(.9); will-change:transform;
   transition:filter .45s cubic-bezier(.16,1,.3,1);
 }
@@ -83,3 +83,8 @@
   .portal-snapshot { transform:none!important; transition:none!important; will-change:auto; }
   .portal-iframe,.portal-view-button,.portal-scanline { transition:none!important;animation:none!important; }
 }
+
+/* Preserve left-aligned hero typography in compact screenshot frames. */
+.portal-frame[data-snapshot-key="realtor-studio"] .portal-snapshot,
+.portal-frame[data-snapshot-key="creamed"] .portal-snapshot,
+.portal-frame[data-snapshot-key="alext"] .portal-snapshot { transform-origin:left center; }

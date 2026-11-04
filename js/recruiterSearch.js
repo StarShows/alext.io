@@ -22,7 +22,8 @@
     "ts": "typescript", "js": "javascript",
     "postgres": "postgresql", "ci cd": "cicd", "cicd": "cicd",
     "model context protocol": "mcp", "genai": "ai",
-    "d3": "d3js", "d3 js": "d3js", "aws lambda": "lambda"
+    "d3": "d3js", "d3 js": "d3js", "aws lambda": "lambda",
+    "osm": "openstreetmap", "sse": "server sent events", "fts": "fts5"
   };
 
   function normalize(value) {

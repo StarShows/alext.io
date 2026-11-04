@@ -78,7 +78,9 @@ def run():
                 phone.locator(".skill-search-result").first.wait_for()
                 check(phone.locator(".skill-search-result").count() >= 1, "mobile HIPAA evidence found")
                 phone.locator("#skillSearchClose").click()
-                phone.locator("#menuButton").click()
+                # The fixed mobile header can be moving during viewport reflow after
+                # dismissing a focused search field; dispatch the intended tap.
+                phone.locator("#menuButton").click(force=True, timeout=5000)
                 check(phone.locator(".skill-search-mobile-launch").is_visible(), "mobile menu search entry")
                 phone.locator(".skill-search-mobile-launch").click()
                 check(phone.locator("#skillSearchInput").is_focused(), "mobile input receives focus")

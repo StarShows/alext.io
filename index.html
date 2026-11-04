@@ -1145,6 +1145,8 @@
       animation: pulse 2s infinite;
     }
   </style>
+  <link rel="stylesheet" href="/public/css/recruiter-search.css?v=20261104">
+  <link rel="stylesheet" href="/public/css/portal-previews.css?v=20261104">
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->
@@ -1187,6 +1189,10 @@
             <span>Senior Full Stack Engineer</span>
           </span>
         </a>
+        <button class="skill-search-trigger" type="button" data-open-skill-search aria-haspopup="dialog" aria-controls="skillSearchDialog" aria-expanded="false" aria-label="Search my skills and engineering projects">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.9" cy="10.9" r="6.5"/><path d="m16 16 5 5"/></svg>
+          <span>Search skills</span><kbd>⌘ K</kbd>
+        </button>
         <div class="nav-links" aria-label="Page sections">
           <a href="#flow">Story</a>
           <a href="#proof">Proof</a>
@@ -1210,6 +1216,10 @@
         </button>
       </nav>
       <div class="mobile-menu" id="mobileMenu">
+        <button class="skill-search-mobile-launch" type="button" data-open-skill-search aria-haspopup="dialog" aria-controls="skillSearchDialog" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.9" cy="10.9" r="6.5"/><path d="m16 16 5 5"/></svg>
+          Search skills and projects
+        </button>
         <a href="#flow">Story</a>
         <a href="#proof">Proof</a>
         <a href="#portals">Live work</a>
@@ -1220,6 +1230,38 @@
         <a href="mailto:alex@alext.io?subject=Hiring%20Alex%20Tannenbaum">Let's talk</a>
       </div>
     </header>
+
+    <!-- Local-first recruiter proof search, no external API or query tracking. -->
+    <div class="skill-search-scrim" id="skillSearchScrim" hidden></div>
+    <section class="skill-search-dialog" id="skillSearchDialog" role="dialog" aria-modal="true" aria-labelledby="skillSearchTitle" aria-describedby="skillSearchStatus" hidden>
+      <div class="skill-search-top">
+        <div>
+          <p class="skill-search-eyebrow">Recruiter mode / evidence finder</p>
+          <h2 id="skillSearchTitle">Find the skill. <em>See the proof.</em></h2>
+        </div>
+        <button class="skill-search-close" id="skillSearchClose" type="button" aria-label="Close skill search">×</button>
+      </div>
+      <div class="skill-search-field">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.9" cy="10.9" r="6.5"/><path d="m16 16 5 5"/></svg>
+        <input id="skillSearchInput" type="search" placeholder="React, Python, AWS, HIPAA, dashboards..." autocomplete="off" spellcheck="false" maxlength="100" aria-label="Search engineering skills and project evidence" aria-controls="skillSearchResults" aria-autocomplete="list">
+        <kbd>↵</kbd>
+      </div>
+      <div class="skill-search-suggestions" id="skillSearchSuggestions">
+        <span>Try</span>
+        <button type="button" data-skill-suggestion="React">React</button>
+        <button type="button" data-skill-suggestion="Python">Python</button>
+        <button type="button" data-skill-suggestion="AWS">AWS</button>
+        <button type="button" data-skill-suggestion="AI">AI</button>
+        <button type="button" data-skill-suggestion="HIPAA">HIPAA</button>
+        <button type="button" data-skill-suggestion="CI/CD">CI/CD</button>
+      </div>
+      <p class="skill-search-status" id="skillSearchStatus" role="status" aria-live="polite">Search for a skill to see where I've used it.</p>
+      <div class="skill-search-results" id="skillSearchResults" role="listbox" aria-label="Search results"></div>
+      <div class="skill-search-footer">
+        <span>↵ jump to evidence · ↑ ↓ navigate · Esc close</span>
+        <span>Only claims shown on this page</span>
+      </div>
+    </section>
 
     <main id="main">
 
@@ -1386,7 +1428,7 @@
           <div class="section-head reveal">
             <p class="section-kicker">Live work previews</p>
             <h2 class="section-title">Open the work without leaving the page.</h2>
-            <p class="section-copy">Live windows into public-facing work I've shipped. Some companies block iframes by policy, so every card has a direct link that always works. Enterprise systems, private repos, and healthcare integrations sit behind access controls; I can walk you through those when the conversation is real.</p>
+            <p class="section-copy">Saved previews of public-facing work I've shipped, served directly from alext.io. Some sites block embedded browsing, so every card includes an optional interactive view and a direct link to the live site. Enterprise systems, private repos, and healthcare integrations sit behind access controls; I can walk you through those when the conversation is real.</p>
             <div class="section-link-row">
               <a class="micro-link primary-micro magnetic" href="https://www.Realtor-Studio.com" target="_blank" rel="noreferrer">Realtor Studio ↗</a>
               <a class="micro-link magnetic" href="https://dinnerradar.com/" target="_blank" rel="noopener noreferrer">DinnerRadar ↗</a>
@@ -1535,7 +1577,7 @@
     </main>
 
     <footer class="footer">
-      <p>© <span id="year"></span> Alex Tannenbaum. Single-file HTML, CSS, and JavaScript with no React, no npm, and no build step.</p>
+      <p>© <span id="year"></span> Alex Tannenbaum. Vanilla HTML, CSS, and JavaScript, designed for clarity and speed.</p>
       <p>Hint to recruiters: inspect this page for a hidden message in the comments.</p>
     </footer>
   </div>
@@ -1657,13 +1699,13 @@
     var marqueeItems = ["AI Engineering","AI Solutions","MCP Servers","Model Context Protocol","Tool Calling","Agent Workflows","LLM APIs","AI automation","React","CHOPT checkout","Braintree payments","TypeScript","Node.js","Express","Python","SQL","AWS Lambda","S3","DynamoDB","API Gateway","Azure Functions","Snowflake","ETL","PCI","SOX","GDPR","HIPAA","D3.js","Plotly Dash","Mapbox","Tableau","DataDog","SonarQube","PostgreSQL","MySQL","MariaDB","Jest","Cypress","Mocha","GitHub Actions","Jenkins","Terraform","Epic","Cloverleaf","WordPress","PHP","Angular","Aurelia","Storybook","Braintree","Stripe","Twilio","Sentry","Linode","LAMP","LEMP"];
 
     var projectFrames = [
-      { label:"Founder-built product", title:"DinnerRadar", url:urls.dinnerRadar, note:"A full-stack dinner concierge I built and launched. One tap recommends a verified-open independent restaurant, or turns ingredients from your fridge into a custom recipe. I own the product end to end, from UX and APIs to data quality, self-hosted AI, and production delivery." },
-      { label:"Founder agency",     title:"Realtor Studio",        url:urls.realtor,    note:"Public-facing agency surface for realtor sites, conversion systems, local positioning, and client delivery. The preview is a window into the business, not the whole machine." },
-      { label:"Product founder",    title:"Creamed",               url:urls.creamed,    note:"DTC product execution: brand, ecommerce surface, compliance awareness, product operations, and positioning." },
-      { label:"Commerce checkout",  title:"CHOPT Salad checkout",  url:urls.chopt,      note:"Contract work through Makeable: React checkout components, Braintree payments, JSON order-object coordination, BrowserStack QA, AWS EC2 releases, production hotfixes. The checkout architecture is the signal." },
-      { label:"Resume system",      title:"Resume PDF",           url:urls.resume, note:"A public resume surface mapping the full-stack, healthcare, enterprise, startup, military, and founder arc into a readable document." },
-      { label:"Personal site",      title:"AlexT.io",              url:urls.alexio,     note:"The production shell this one-pager replaces or evolves. Public site, private history, new direction." },
-      { label:"Personal side project", title:"What's for dinner?", url:"https://alext.io/dinner", note:"A lightweight app I built to solve the eternal question: what to eat for dinner. It's a personal tool, not a commercial product, but it's live, it works, and it shows I build things for myself the same way I build them for anyone else." }
+      { label:"Founder-built product", title:"DinnerRadar", snapshot:"dinnerradar", url:urls.dinnerRadar, note:"A full-stack dinner concierge I built and launched. One tap recommends a verified-open independent restaurant, or turns ingredients from your fridge into a custom recipe. I own the product end to end, from UX and APIs to data quality, self-hosted AI, and production delivery." },
+      { label:"Founder agency",     title:"Realtor Studio", snapshot:"realtor-studio",        url:urls.realtor,    note:"Public-facing agency surface for realtor sites, conversion systems, local positioning, and client delivery. The preview is a window into the business, not the whole machine." },
+      { label:"Product founder",    title:"Creamed", snapshot:"creamed",               url:urls.creamed,    note:"DTC product execution: brand, ecommerce surface, compliance awareness, product operations, and positioning." },
+      { label:"Commerce checkout",  title:"CHOPT Salad checkout", snapshot:"chopt",  url:urls.chopt,      note:"Contract work through Makeable: React checkout components, Braintree payments, JSON order-object coordination, BrowserStack QA, AWS EC2 releases, production hotfixes. The checkout architecture is the signal." },
+      { label:"Resume system",      title:"Resume PDF", snapshot:"resume",           url:urls.resume, note:"A public resume surface mapping the full-stack, healthcare, enterprise, startup, military, and founder arc into a readable document." },
+      { label:"Personal site",      title:"AlexT.io", snapshot:"alext",              url:urls.alexio,     note:"The production shell this one-pager replaces or evolves. Public site, private history, new direction." },
+      { label:"Personal side project", title:"What's for dinner?", snapshot:"dinner", url:"https://alext.io/dinner", note:"A lightweight app I built to solve the eternal question: what to eat for dinner. It's a personal tool, not a commercial product, but it's live, it works, and it shows I build things for myself the same way I build them for anyone else." }
     ];
 
     var sourceLinks = {
@@ -1800,10 +1842,18 @@
             '<div><p class="portal-kicker">'+esc(item.label)+'</p><h3>'+esc(item.title)+'</h3></div>'+
             '<span class="portal-orb" aria-hidden="true"></span>'+
           '</div>'+
-          '<div class="portal-frame">'+
-            '<iframe class="portal-iframe" title="'+esc(item.title)+' preview" src="'+esc(item.url)+'" loading="lazy" referrerpolicy="no-referrer-when-downgrade" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>'+
+          '<div class="portal-frame" data-snapshot-key="'+esc(item.snapshot)+'">'+
+            '<div class="portal-snapshot-shell">'+
+              '<img class="portal-snapshot" src="/images/previews/'+esc(item.snapshot)+'.webp" alt="Saved visual preview of '+esc(item.title)+'" loading="lazy" decoding="async">'+
+              '<span class="portal-image-error" hidden>Preview not available<small>Use the Open live link below.</small></span>'+
+            '</div>'+
+            '<span class="portal-preview-badge">Locally served preview</span>'+
+            '<iframe class="portal-iframe" title="'+esc(item.title)+' interactive website view" data-live-src="'+esc(item.url)+'" loading="lazy" referrerpolicy="no-referrer" sandbox="allow-scripts allow-popups allow-forms" hidden></iframe>'+
             '<div class="portal-scanline"></div>'+
-            '<div class="portal-blocked">If this preview is blocked by frame policy, use the direct link below, since real production systems often protect embeds.</div>'+
+            '<div class="portal-live-controls">'+
+              '<button class="portal-view-button" type="button" data-portal-try-live>Try live view</button>'+
+              '<button class="portal-view-button" type="button" data-portal-snapshot-back hidden>Back to snapshot</button>'+
+            '</div>'+
           '</div>'+
           '<p>'+esc(item.note)+'</p>'+
           '<div class="portal-actions">'+
@@ -2057,6 +2107,13 @@
     setupGraphInteraction();
     setupParallax();
     setupCountUp();
+    // Reuse the skill graph's own descriptions as evidence search data.
+    window.portfolioSkillSearch = {
+      skills: nodes.map(function(n) {
+        return {id:n.id,label:n.label,note:n.note,tags:n.tags.slice()};
+      }),
+      selectSkill: selectNode
+    };
 
   })();
   </script>
@@ -2104,5 +2161,7 @@
     tick();
   })();
   </script>
+  <script src="/js/recruiterSearch.js?v=20261104" defer></script>
+  <script src="/js/portalPreview.js?v=20261104" defer></script>
 </body>
 </html>

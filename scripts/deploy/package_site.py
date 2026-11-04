@@ -31,6 +31,15 @@ GENERATED_BRAND_ASSETS = frozenset({
 REQUIRED_BRAND_ASSETS = GENERATED_BRAND_ASSETS | {
     "images/favicon.svg", "images/site-manifest.json",
 }
+PORTAL_SNAPSHOT_KEYS = (
+    "dinnerradar", "realtor-studio", "creamed",
+    "chopt", "resume", "alext", "dinner",
+)
+GENERATED_PORTAL_ASSETS = frozenset(
+    {"images/previews/" + name + ".webp" for name in PORTAL_SNAPSHOT_KEYS}
+    | {"images/previews/capture-status.json"}
+)
+GENERATED_ASSETS = GENERATED_BRAND_ASSETS | GENERATED_PORTAL_ASSETS
 
 
 def is_deployable(path: str) -> bool:
@@ -51,11 +60,15 @@ def build(out: Path, root: Path = ROOT) -> list[str]:
         missing = sorted(p for p in REQUIRED_BRAND_ASSETS if not (root / p).is_file())
         if missing:
             raise ValueError(f"Missing generated brand assets: {', '.join(missing)}")
+    if b"/images/previews/" in (root / "index.html").read_bytes():
+        missing_previews = sorted(p for p in GENERATED_PORTAL_ASSETS if not (root / p).is_file())
+        if missing_previews:
+            raise ValueError("Missing portal preview assets: " + ", ".join(missing_previews))
     # Explicitly include build-generated binaries. Keep the rest of the archive
     # limited to tracked, allowlisted files (no unexpected untracked uploads).
     candidates = sorted(
         {path for path in paths if is_deployable(path)}
-        | {path for path in GENERATED_BRAND_ASSETS if (root / path).is_file()}
+        | {path for path in GENERATED_ASSETS if (root / path).is_file()}
     )
     if "index.html" not in candidates:
         raise ValueError("index.html is missing from the tracked release")

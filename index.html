@@ -1513,9 +1513,9 @@
               <div class="case-study-meta"><span class="case-study-count">02 / 03</span><span>The Walt Disney Company · Enterprise engineering</span><span class="case-status">Private system</span></div>
               <div class="case-study-title-row">
                 <div>
-                  <p class="case-study-overline">DISNEY / TITAN</p>
-                  <h3 class="case-study-title" id="titanCaseTitle">The proof of concept was Airtable. The product was much bigger.</h3>
-                  <p class="case-study-deck">Titan began with an Airtable proof of concept for structured business-application data and attestation workflows. The full product evolved into a MERN platform with an AWS Bedrock AI layer, custom MCP interfaces, and DAG-orchestrated work.</p>
+                  <p class="case-study-overline">DISNEY / TITAN · ARCHITECTURE + DELIVERY</p>
+                  <h3 class="case-study-title" id="titanCaseTitle">The POC proved the idea. The architecture made it scalable.</h3>
+                  <p class="case-study-deck">Titan began as an Airtable proof of concept. The larger challenge was designing and delivering a maintainable enterprise product: a MERN application, big-data ETL across multiple teams and incompatible schemas, documented engineering standards, and an AWS Bedrock AI layer connected through custom MCP tools and DAG workflows.</p>
                 </div>
                 <a class="case-secondary-link" href="#contact">Discuss the architecture <span aria-hidden="true">↗</span></a>
               </div>
@@ -1523,31 +1523,52 @@
             <div class="case-study-body">
               <div class="case-story-copy">
                 <div class="case-story-block">
-                  <h4><span>01</span> The problem</h4>
-                  <p>An Airtable proof of concept is a useful way to prove an intake and data-attestation workflow. It becomes a constraint when the application needs to integrate large enterprise datasets, reconcile different source systems, and support richer user experiences and operational logic.</p>
+                  <h4><span>01</span> One workflow, many source systems</h4>
+                  <p>Airtable helped validate business-application intake and attestation. Building the real product meant moving beyond a table-driven POC: large datasets arrived from different teams, Snowflake and ServiceNow held different views of the world, and each source brought its own fields, schema assumptions, identifiers, and ownership. The challenge was to make that data useful without binding the product to any one team's format.</p>
                 </div>
                 <div class="case-story-block">
-                  <h4><span>02</span> What I built</h4>
-                  <p>I worked across the full-stack architecture: React interfaces, Node.js and Express services, MongoDB-backed application behavior, and integration logic working with large volumes of Snowflake and ServiceNow data. The AI layer used Amazon Bedrock, custom Model Context Protocol (MCP) tooling, and directed acyclic graph (DAG) workflows to support multi-step processing.</p>
+                  <h4><span>02</span> Architecture and technical documentation</h4>
+                  <p>I worked on the architecture for a MERN platform, separating React workflows from Node.js / Express APIs, MongoDB application state, and the ETL and integration layers. I treated technical documentation as part of the build: recording how components fit together, where responsibilities belong, how schemas map into application contracts, and which decisions would affect maintenance as more teams joined.</p>
                 </div>
                 <div class="case-story-block">
-                  <h4><span>03</span> The engineering decision</h4>
-                  <p>The shift was from a useful table-driven experiment to deliberately separated services. Data ingestion and mapping belong in API and processing layers; application state and workflows belong in the product; AI needs defined tool interfaces and explicit execution steps rather than an opaque chat window wired directly to enterprise records.</p>
+                  <h4><span>03</span> Big-data ETL across teams and schemas</h4>
+                  <p>The data engineering work was about more than moving rows. It involved ingesting and transforming large, differently structured datasets, reconciling fields and identifiers across source schemas, validating data quality, and exposing consistent records to application services. DAG-based orchestration made multi-step processing explicit instead of burying dependencies inside one-off scripts. This gave the product a clearer boundary between source data and user-facing behavior.</p>
                 </div>
-                <p class="case-story-takeaway">The story is about turning an early validation tool into an extensible engineering platform while keeping data integration, application workflows, and AI orchestration distinct.</p>
+                <div class="case-story-block">
+                  <h4><span>04</span> Coding standards, development flow, and tests</h4>
+                  <p>Architecture only holds up if the team can keep shipping against it. I emphasized documented interfaces, clear coding conventions, reviewable changes, and a predictable development flow from implementation through code review, testing, and release. Unit, integration, and regression testing were part of the engineering conversation, especially around schema transformations, API contracts, and the behavior of multi-step workflows.</p>
+                </div>
+                <div class="case-story-block">
+                  <h4><span>05</span> Agile delivery and engineering economics</h4>
+                  <p>I approached delivery in manageable, testable increments with ongoing feedback from partner teams and stakeholders. Cost analysis was part of the architectural judgment: weighing the effort of replacing the Airtable POC against the long-term cost of maintaining it, and examining the implications of data-processing volume, storage and query patterns, application hosting, AI model usage, and operational support. The goal was a platform the organization could evolve responsibly, not the flashiest stack on paper.</p>
+                </div>
+                <p class="case-story-takeaway">What I want this work to show: I can turn a quick proof of concept into a well-reasoned engineering platform, document the tradeoffs, align teams working with different schemas, and make architecture, cost, testing, and delivery part of the same conversation.</p>
               </div>
-              <figure class="case-architecture" aria-label="High-level conceptual architecture for Disney Titan">
-                <div class="case-architecture-top"><span class="case-diagram-indicator"></span><span>HOW IT WORKS</span><span>PUBLIC-LEVEL OVERVIEW</span></div>
+              <figure class="case-architecture" aria-label="Conceptual Disney Titan architecture spanning source teams, ETL, MERN product, and Bedrock AI orchestration">
+                <div class="case-architecture-top"><span class="case-diagram-indicator"></span><span>ARCHITECTURE AT A GLANCE</span><span>PUBLIC-LEVEL OVERVIEW</span></div>
                 <div class="case-flow">
-                  <div class="case-flow-step"><span class="case-flow-index">01 · SOURCES</span><strong>Snowflake + ServiceNow</strong><small>Enterprise records and source data</small></div>
-                  <div class="case-flow-step"><span class="case-flow-index">02 · INTEGRATION</span><strong>Node.js / Express APIs</strong><small>Mapping, transformation, validation</small></div>
-                  <div class="case-flow-step"><span class="case-flow-index">03 · PRODUCT</span><strong>React + MongoDB</strong><small>App state, workflows, user-facing dashboards</small></div>
-                  <div class="case-flow-step"><span class="case-flow-index">04 · AI / ORCHESTRATION</span><strong>Bedrock + custom MCP + DAGs</strong><small>Defined tools and multi-step processing</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">01 · SOURCE TEAMS</span><strong>Snowflake + ServiceNow</strong><small>Multiple owners, data contracts, and heterogeneous schemas</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">02 · BIG-DATA PIPELINE</span><strong>ETL + schema normalization</strong><small>Ingestion, field mapping, validation, and DAG dependencies</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">03 · SERVICE BOUNDARY</span><strong>Node.js / Express + MongoDB</strong><small>Stable API contracts, state, and application logic</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">04 · USER EXPERIENCE</span><strong>React workflows</strong><small>Business-application views, attestation, and dashboards</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">05 · AI CAPABILITIES</span><strong>AWS Bedrock + custom MCP</strong><small>Controlled model-tool integration and orchestrated processing</small></div>
                 </div>
-                <figcaption>Illustrative component map, not an internal system diagram. No source records, private architecture, endpoints, or credentials are shown.</figcaption>
+                <figcaption>Conceptual layers, not a literal request sequence or an internal architecture diagram. DAG orchestration and AI capabilities can span stages. No private schemas, records, endpoints, credentials, or internal cost figures are disclosed.</figcaption>
               </figure>
             </div>
-            <div class="case-stack"><span class="case-stack-label">TECH STACK</span><ul aria-label="Titan technologies"><li>MongoDB</li><li>Express</li><li>React</li><li>Node.js</li><li>AWS Bedrock</li><li>Custom MCP</li><li>DAG orchestration</li><li>Snowflake</li><li>ServiceNow</li><li>Airtable POC</li></ul></div>
+            <div class="case-engineering-practices" aria-label="Titan engineering disciplines">
+              <div class="case-engineering-practices-heading">
+                <span>BEYOND THE TECH STACK</span>
+                <h4>Engineering discipline was part of the product.</h4>
+              </div>
+              <div class="case-practice-grid">
+                <div class="case-practice"><span>01 / DESIGN</span><strong>Architecture + docs</strong><p>Service boundaries, data mappings, interface decisions, and maintainability tradeoffs.</p></div>
+                <div class="case-practice"><span>02 / ECONOMICS</span><strong>Cost analysis</strong><p>Build-vs-extend decisions, processing and storage needs, model usage, and operational overhead.</p></div>
+                <div class="case-practice"><span>03 / QUALITY</span><strong>Standards + tests</strong><p>Code conventions, reviewable changes, validation, integration tests, and regression thinking.</p></div>
+                <div class="case-practice"><span>04 / DELIVERY</span><strong>Agile + cross-team flow</strong><p>Incremental milestones, source-owner alignment, feedback, and disciplined releases.</p></div>
+              </div>
+            </div>
+            <div class="case-stack"><span class="case-stack-label">TECH STACK + DISCIPLINES</span><ul aria-label="Titan technologies and engineering practices"><li>MongoDB</li><li>Express</li><li>React</li><li>Node.js</li><li>AWS Bedrock</li><li>Custom MCP</li><li>DAG orchestration</li><li>Big-data ETL</li><li>Schema mapping</li><li>Snowflake</li><li>ServiceNow</li><li>Airtable POC</li><li>Architecture docs</li><li>Cost analysis</li><li>Testing</li><li>Agile delivery</li></ul></div>
           </article>
 
           <article class="case-study case-study--hoag" id="build-hoag" tabindex="-1" aria-labelledby="hoagCaseTitle">
@@ -1809,7 +1830,7 @@
 
     /* ===== DATA: ROLES ===== */
     var roles = [
-      { period:"2024 – present", role:"Senior Software Engineer", org:"The Walt Disney Company", url:urls.disney, text:"I own architecture and hands-on development across data platforms, secure ETL, Python, SQL, TypeScript, React, Node, AWS, Azure Functions, Snowflake, automations, dashboards, compliance systems, CI/CD, documentation, and stakeholder delivery.", tags:["Senior software engineering","Cloud/data","Python","TypeScript","Compliance","Dashboards"] },
+      { period:"2024 – present", role:"Senior Software Engineer", org:"The Walt Disney Company", url:urls.disney, text:"I work across platform architecture, full-stack MERN engineering, large-scale ETL joining datasets from multiple teams and schemas, AWS Bedrock and MCP integrations, and the documentation, cost analysis, coding standards, tests, and Agile delivery practices needed to maintain enterprise systems.", tags:["Architecture","Cross-team ETL","AWS Bedrock","MERN","Engineering standards","Agile delivery"] },
       { period:"2023 – 2024", role:"Full Stack Engineer", org:"Hoag Hospital", url:urls.hoag, text:"I built secure healthcare web and mobile systems with React, TypeScript, Node.js, AWS Lambda, PostgreSQL, MySQL, Epic and Cloverleaf EHR integrations, HIPAA-compliant APIs, Jest, Cypress, Terraform, Stripe, Sentry, and Twilio.", tags:["Healthcare","Epic","Cloverleaf","HIPAA","AWS","React"] },
       { period:"2019 – 2023", role:"Senior Full Stack Engineer", org:"McKinsey client technology work", url:urls.mckinsey, text:"Full-stack HIPAA architecture using React, Express, Sequelize, MariaDB, Jenkins, Gradle, Docker, Swagger, Jest, Cypress, Mocha, Python Airflow DAGs, D3, Plotly Dash, Mapbox, Tableau, DataDog, and SonarQube.", tags:["HIPAA","React","Express","D3","Airflow","Tableau"] },
       { period:"2016 – 2019", role:"Contract engineering arc", org:"Overpass, Makeable, WR1, Pips Island", url:urls.resume, text:"Shipped Aurelia, Angular 2, React checkout flows, Braintree payments, WordPress headless CMS, PHP REST APIs, Storybook design systems, Linode, LAMP, Gulp optimizations, custom animations, and production hotfixes across multiple clients.", tags:["Aurelia","Angular","React","Braintree","WordPress","Storybook"] },
@@ -1818,9 +1839,9 @@
 
     /* ===== DATA: EXPERIENCE CARDS ===== */
     var experiences = [
-      ["Disney","Enterprise full-stack platforms","I architect and implement systems with React, Node.js, TypeScript, Python, SQL, AWS, Azure, Snowflake, and whatever tool the problem actually calls for."],
-      ["Disney","Secure ETL pipelines","I design automated ETL and integration workflows aligned with PCI, SOX, GDPR, and enterprise data integrity standards."],
-      ["Disney","Automation and validation","I build automation workflows for validation, anomaly detection, reporting, data integrity, and enterprise decision support."],
+      ["Disney","Titan platform architecture","I helped evolve an Airtable POC into a MERN platform, documenting service boundaries, API contracts, schema decisions, delivery workflow, and the cost and maintenance tradeoffs of an enterprise architecture."],
+      ["Disney","Multi-team big-data ETL","I work with Snowflake, ServiceNow, and datasets owned by different teams, mapping heterogeneous schemas, validating transformations, and designing repeatable integration workflows for dependable application data."],
+      ["Disney","Engineering standards and Agile delivery","I emphasize clear technical documentation, coding conventions, code review, testable changes, unit and integration checks, and iterative delivery with partner teams and stakeholders."],
       ["Disney","AI engineering workflows","I use AI-driven automation and ML workflows for data validation, anomaly detection, intelligent reporting, and production business systems, while applying modern AI-assisted engineering practices to architecture, implementation, testing, and debugging."],
       ["Disney","Executive dashboards","I deliver reporting systems that give leadership visibility into security posture, compliance status, operational health, and enterprise metrics."],
       ["Disney","Cloud automation","I build automation with AWS Lambda, Azure Functions, ServiceNow APIs, Airtable integrations, CI/CD pipelines, GitHub Actions, and Jenkins."],

@@ -29,7 +29,7 @@
 .skill-search-mobile-launch { display: none; }
 .skill-search-scrim {
   position:fixed; z-index:950; inset:0;
-  background:rgba(2,4,16,.78); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  background:rgba(2,4,16,.86); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   animation: recruiter-scrim-in .28s ease both;
 }
 .skill-search-dialog {
@@ -40,12 +40,13 @@
   display:flex; flex-direction:column; isolation:isolate; overflow:hidden;
   border-radius:30px; border:1px solid rgba(158,227,255,.29);
   background:linear-gradient(152deg,rgba(14,23,46,.98),rgba(6,9,28,.985) 58%,rgba(27,12,39,.97));
+  contain:layout paint;
   box-shadow:0 48px 130px rgba(0,0,0,.67),0 0 0 1px rgba(255,255,255,.06) inset,0 0 100px rgba(100,76,194,.18);
   animation: recruiter-modal-in .55s cubic-bezier(.16,1,.3,1) both;
 }
 .skill-search-dialog[hidden], .skill-search-scrim[hidden], .skill-search-suggestions[hidden] { display:none!important; }
 .skill-search-dialog::before {
-  content:""; position:absolute; inset:-48%; pointer-events:none; z-index:-1;
+  content:""; position:absolute; inset:-8%; pointer-events:none; z-index:-1;
   background:
     radial-gradient(ellipse at var(--liquid-x) var(--liquid-y),rgba(97,243,255,.16),transparent 33%),
     radial-gradient(ellipse at 14% 72%,rgba(165,140,255,.22),transparent 38%),
@@ -56,7 +57,7 @@
   content:""; position:absolute; pointer-events:none; z-index:-1;
   width:360px; height:360px; border-radius:50%; top:-280px; right:-120px;
   background:conic-gradient(from 90deg,transparent,rgba(97,243,255,.16),rgba(255,139,212,.15),transparent);
-  filter:blur(28px); animation:recruiter-liquid-spin 16s linear infinite;
+  animation:recruiter-liquid-spin 22s linear infinite;
 }
 .skill-search-top {
   position:relative; display:flex; justify-content:space-between; align-items:flex-start;
@@ -172,16 +173,17 @@
   padding:13px 30px; border-top:1px solid rgba(255,255,255,.075);
   color:rgba(232,240,255,.45); font:600 10px Consolas,monospace; letter-spacing:.02em;
 }
+/* Animate only the compact matched evidence, never the full article. */
 .recruiter-spotlight {
-  position:relative!important; isolation:isolate; scroll-margin-top:150px;
-  outline:2px solid #61f3ff!important; outline-offset:6px;
-  box-shadow:0 0 0 10px rgba(97,243,255,.1),0 0 52px rgba(97,243,255,.2)!important;
-  animation:recruiter-spotlight-in 1.1s cubic-bezier(.16,1,.3,1) both;
+  position:relative!important; scroll-margin-top:145px;
+  outline:2px solid #61f3ff!important; outline-offset:5px;
+  border-radius:12px;
+  box-shadow:0 0 0 6px rgba(97,243,255,.085)!important;
 }
 .recruiter-spotlight::after {
   content:""; position:absolute; pointer-events:none; z-index:6;
-  inset:-8px; border-radius:inherit; border:2px solid rgba(255,139,212,.45);
-  animation:recruiter-spotlight-wave 1.4s ease-out 2;
+  inset:-7px; border-radius:inherit; border:2px solid rgba(255,139,212,.45);
+  animation:recruiter-spotlight-wave 1.3s ease-out 2;
 }
 mark.recruiter-keyword {
   position:relative; padding:0 .09em; border-radius:.19em;
@@ -189,14 +191,13 @@ mark.recruiter-keyword {
   box-shadow:0 0 24px rgba(97,243,255,.38);
 }
 @keyframes recruiter-scrim-in { from { opacity:0; } to { opacity:1; } }
-@keyframes recruiter-modal-in { from { opacity:0; transform:translate(-50%,-16px) scale(.95); filter:blur(7px); } to { opacity:1; transform:translateX(-50%) scale(1); filter:blur(0); } }
+@keyframes recruiter-modal-in { from { opacity:0; transform:translate(-50%,-12px) scale(.97); } to { opacity:1; transform:translateX(-50%) scale(1); } }
 @keyframes recruiter-result-in { from { opacity:0; transform:translateY(11px); } to { opacity:1; transform:translateY(0); } }
 @keyframes recruiter-liquid-drift { from { transform:translate3d(-3%,1%,0) rotate(-4deg); } to { transform:translate3d(4%,-3%,0) rotate(5deg); } }
 @keyframes recruiter-liquid-spin { to { transform:rotate(360deg); } }
 @keyframes recruiter-heartbeat { 50% { transform:scale(1.55); box-shadow:0 0 25px rgba(97,243,255,1); } }
 @keyframes recruiter-search-shine { 50% { background-position:100% 0; } }
-@keyframes recruiter-spotlight-in { 0% { filter:brightness(1.45); } 100% { filter:brightness(1); } }
-@keyframes recruiter-spotlight-wave { 0% { opacity:1; transform:scale(.985); } 100% { opacity:0; transform:scale(1.035); } }
+@keyframes recruiter-spotlight-wave { from { opacity:.85; } to { opacity:0; } }
 /* Reserve navigation width for the recruiter search, without wrapping links. */
 @media(min-width:821px) {
   .nav-wrap .nav { width:min(1540px,100%); }
@@ -227,6 +228,8 @@ mark.recruiter-keyword {
   }
   .skill-search-mobile-launch svg { width:20px; height:20px; stroke:#61f3ff; fill:none; stroke-width:2; }
   .skill-search-dialog { top:12px; max-height:calc(100dvh - 24px); border-radius:24px; }
+  .skill-search-scrim { backdrop-filter:none; -webkit-backdrop-filter:none; }
+  .skill-search-dialog::before,.skill-search-dialog::after { animation:none; }
   .skill-search-top { padding:25px 20px 14px; }
   .skill-search-field { margin:0 15px; height:60px; padding:0 13px; }
   .skill-search-suggestions { margin:16px 18px 3px; }
@@ -242,7 +245,10 @@ mark.recruiter-keyword {
   .skill-search-result small { font-size:12px; }
   .skill-search-arrow { width:29px; height:29px; }
 }
+/* Avoid animating the site cursor glow under the open command palette. */
+.skill-search-is-open .cursor-light { opacity:0!important; }
 @media(prefers-reduced-motion:reduce) {
+  .skill-search-scrim { backdrop-filter:none; -webkit-backdrop-filter:none; }
   .skill-search-dialog,.skill-search-scrim,.skill-search-result,.skill-search-trigger::before,
   .skill-search-dialog::before,.skill-search-dialog::after,.skill-search-eyebrow::before,
   .recruiter-spotlight,.recruiter-spotlight::after { animation:none!important; }

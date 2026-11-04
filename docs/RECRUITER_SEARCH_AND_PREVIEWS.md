@@ -98,3 +98,35 @@ The existing DinnerRadar portfolio card links to the corresponding story;
 no new screenshot source, backend integration, or production dependency is
 introduced. Recruiter search indexes the case study and maps short terms
 such as OSM and SSE to the demonstrated architecture.
+
+## Recruiter search stability and performance
+
+The public evidence finder originally spotlighted entire long case-study
+articles. Some of those articles exceed 2,900 CSS pixels on phones. Styling
+their full surfaces with animated filters, glows and scaling borders creates
+an unusually large paint/compositing workload, which can make mobile browsers
+stutter or terminate under memory pressure. This is a credible risk, but
+a production-device crash has not been independently reproduced.
+
+The optimized implementation:
+
+- Finds the smallest relevant evidence block inside a case study and scrolls
+  to that block instead of highlighting the entire multi-screen article.
+- Uses a lightweight outline and short border pulse instead of animated
+  brightness filters and scaling multi-megapixel card layers.
+- Removes full-viewport backdrop blur on phones and reduced-motion devices,
+  limits blurred surfaces on desktop, and contains modal paint work.
+- Updates pointer-driven liquid effects at most once per animation frame and
+  never scrolls result items when the pointer merely passes over them.
+- Caps DOM keyword marks and scanned text nodes.
+- Cancels pending search and focus timers on closing or reopening, and
+  refreshes the result set synchronously when Enter beats debounce.
+- Versions the JS and CSS URLs to prevent stale browser caches on release.
+
+In addition to regular browser smoke tests, the CI suite performs quick
+successive search-and-select cycles on real Chromium desktop and mobile
+viewports, checks for page errors and browser crashes, verifies tiny spotlight
+surfaces, checks mobile blur fallbacks, and exercises paste-style input.
+
+This is a front-end robustness improvement. No new endpoint, telemetry,
+external service, permission, or private data is introduced.

@@ -64,6 +64,11 @@ jobs:
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/brand-venv/bin/python" tests/browser_smoke.py
+      - name: Stress test recruiter search on desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/brand-venv/bin/python" tests/browser_search_stability.py
       - name: Save preview images for PR review
         if: always()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5

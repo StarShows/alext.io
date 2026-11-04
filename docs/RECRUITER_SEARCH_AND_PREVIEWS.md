@@ -83,3 +83,18 @@ from site content, with no external search service.
 
 Production deployments remain owner-approved. PR validation generates eight
 WebP assets and tests both desktop and mobile case study accessibility.
+
+
+### DinnerRadar engineering story
+
+The build-stories section now includes a fourth static, SEO-accessible story
+for DinnerRadar, based on the private implementation repository's actual
+Next.js/React/TypeScript, SQLite WAL + FTS5, OpenStreetMap/Overpass worker
+pipeline, local LLM with user-priority leases, SSE progress streaming,
+success-only usage quotas, passwordless authentication, Stripe billing,
+and versioned CI + QA releases with rollback.
+
+The existing DinnerRadar portfolio card links to the corresponding story;
+no new screenshot source, backend integration, or production dependency is
+introduced. Recruiter search indexes the case study and maps short terms
+such as OSM and SSE to the demonstrated architecture.

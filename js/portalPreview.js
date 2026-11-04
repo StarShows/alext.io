@@ -113,7 +113,7 @@
       var r = item.frame.getBoundingClientRect();
       if (r.bottom < -100 || r.top > window.innerHeight + 100) return;
       var progress = Math.max(-1, Math.min(1, (halfHeight - (r.top + r.height / 2)) / halfHeight));
-      item.image.style.transform = "translate3d(0," + (progress * 29).toFixed(1) + "px,0) scale(1.17)";
+      item.image.style.transform = "translate3d(0," + (progress * 12).toFixed(1) + "px,0) scale(1.14)";
     });
   }
   function schedule() {

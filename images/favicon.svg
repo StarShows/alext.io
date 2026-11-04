@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Alex Tannenbaum AT monogram</title>
+  <defs><linearGradient id="edge" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#61f3ff"/><stop offset="0.55" stop-color="#6aa9ff"/><stop offset="1" stop-color="#ff8bd4"/></linearGradient></defs>
+  <rect width="64" height="64" rx="14" fill="#050611"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="url(#edge)" stroke-width="2.5"/>
+  <path d="M8 48 20 14h7l13 34h-7.8l-8.7-24.1L15.7 48Z" fill="#fbfcff"/>
+  <path d="M17 35h15l2.5 6h-20Z" fill="#fbfcff"/>
+  <path d="M35.8 14H58v7.5h-7.4V48h-7.4V21.5h-7.4Z" fill="#fbfcff"/>
+  <circle cx="53.5" cy="54.5" r="3.3" fill="#ff8bd4"/>
+</svg>

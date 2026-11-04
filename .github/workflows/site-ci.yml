@@ -38,6 +38,13 @@ jobs:
         run: |
           set -euo pipefail
           while IFS= read -r -d '' file; do node --check "$file"; done < <(git ls-files -z -- '*.js')
+      - name: Generate browser and social media images
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/brand-venv"
+          "$RUNNER_TEMP/brand-venv/bin/python" -m pip install --disable-pip-version-check --no-deps --only-binary=:all: Pillow==11.3.0
+          "$RUNNER_TEMP/brand-venv/bin/python" scripts/deploy/generate_brand_assets.py
       - name: Validate scripts, tests, and release archive
         shell: bash
         run: |

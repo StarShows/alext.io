@@ -236,3 +236,9 @@ mark.recruiter-keyword {
   .recruiter-spotlight,.recruiter-spotlight::after { animation:none!important; }
   .skill-search-dialog,.skill-search-result,.skill-search-trigger { transition:none!important; }
 }
+
+@media (hover:none) {
+  .skill-search-trigger:hover, .menu-button:hover {
+    transform:none!important;
+  }
+}

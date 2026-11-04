@@ -185,7 +185,11 @@ jobs:
         run: |
           set -euo pipefail
           for slug in dinnerradar realtor-studio creamed chopt resume alext dinner; do
-            curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/images/previews/$slug.webp?v=$GITHUB_SHA" -o "$RUNNER_TEMP/preview-$slug.webp"
+            url="https://alext.io/images/previews/$slug.webp?v=$GITHUB_SHA"
+            if ! curl --fail --location --silent --show-error --retry 2 --max-time 25 "$url" -o "$RUNNER_TEMP/preview-$slug.webp"; then
+              echo "::error::Public screenshot $slug could not be fetched from $url. Verify images/previews is mode 755 and the file is mode 644." >&2
+              exit 1
+            fi
           done
           curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/images/previews/capture-status.json?v=$GITHUB_SHA" -o "$RUNNER_TEMP/capture-status.json"
           python3 - "$RUNNER_TEMP" <<'PY'

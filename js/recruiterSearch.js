@@ -13,7 +13,8 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var records = [], found = [], active = 0;
-  var debounceId = 0, spotlightId = 0, priorFocus = null, markedTarget = null;
+  var debounceId = 0, spotlightId = 0, focusId = 0, priorFocus = null, markedTarget = null;
+  var renderedQuery = "";
   var bridge = window.portfolioSkillSearch || null;
 
   var aliases = {
@@ -129,7 +130,7 @@
     return (start > 0 ? "..." : "") + source.slice(start, start + 165).trim() +
       (start + 165 < source.length ? "..." : "");
   }
-  function setActive(index) {
+  function setActive(index, shouldScroll) {
     var options = [].slice.call(resultsRoot.querySelectorAll(".skill-search-result"));
     if (!options.length) return;
     active = (index + options.length) % options.length;
@@ -139,10 +140,13 @@
       option.setAttribute("aria-selected", selected ? "true" : "false");
     });
     input.setAttribute("aria-activedescendant", options[active].id);
-    options[active].scrollIntoView({ block: "nearest", behavior: "auto" });
+    // Avoid forced layout work when mouse movements change the active result.
+    if (shouldScroll) options[active].scrollIntoView({ block: "nearest", behavior: "instant" });
   }
   function render(query) {
-    var term = query.trim();
+    if (panel.hidden) return;
+    var term = String(query || "").trim().slice(0, 100);
+    renderedQuery = term;
     resultsRoot.replaceChildren();
     input.removeAttribute("aria-activedescendant");
     suggestions.hidden = Boolean(term);
@@ -195,7 +199,7 @@
       copy.append(category, title, detail);
       button.append(copy, icon);
       button.addEventListener("click", function () { reveal(record, term); });
-      button.addEventListener("pointerenter", function () { setActive(index); });
+      button.addEventListener("pointerenter", function () { setActive(index, false); });
       resultsRoot.appendChild(button);
     });
     active = 0;
@@ -229,15 +233,15 @@
       }
     });
     var nodes = [], count = 0, node;
-    while ((node = walker.nextNode()) && nodes.length < 60) nodes.push(node);
+    while ((node = walker.nextNode()) && nodes.length < 32) nodes.push(node);
     nodes.forEach(function (textNode) {
-      if (count >= 12) return;
+      if (count >= 8) return;
       var source = textNode.textContent;
       regex.lastIndex = 0;
       if (!regex.test(source)) return;
       regex.lastIndex = 0;
       var fragment = document.createDocumentFragment(), last = 0, match;
-      while ((match = regex.exec(source)) && count < 12) {
+      while ((match = regex.exec(source)) && count < 8) {
         if (match.index > last) fragment.appendChild(document.createTextNode(source.slice(last, match.index)));
         var mark = document.createElement("mark");
         mark.className = "recruiter-keyword";
@@ -250,6 +254,31 @@
       textNode.parentNode.replaceChild(fragment, textNode);
     });
   }
+  // Spotlight the matching evidence rather than a multi-thousand-pixel
+  // case-study surface. Full-article filter and shadow animations can exhaust
+  // the GPU raster budget on mobile browsers.
+  function findEvidenceTarget(target, query) {
+    if (!target || !target.isConnected) return null;
+    if (!target.matches || !target.matches(".case-study")) return target;
+    var phrase = canonical(query);
+    var terms = phrase.split(" ").filter(Boolean);
+    var candidates = target.querySelectorAll(
+      ".case-story-block, .case-flow-step, .case-practice, " +
+      ".case-dinner-mode, .case-study-deck, .case-story-takeaway, .case-stack"
+    );
+    var best = null, bestScore = -Infinity;
+    [].forEach.call(candidates, function (element) {
+      var text = normalize(element.textContent);
+      if (!text) return;
+      var score = containsTerm(text, phrase) ? 100 :
+        terms.every(function (term) { return containsTerm(text, term); }) ? 40 : -1;
+      if (score < 0) return;
+      score -= Math.min(text.length, 3000) / 120;
+      if (score > bestScore) { best = element; bestScore = score; }
+    });
+    return best || target.querySelector(".case-study-deck") || target;
+  }
+
   function reveal(record, query) {
     close(false);
     clearMarks();
@@ -258,19 +287,26 @@
       bridge.selectSkill(record.nodeId);
       target = document.getElementById("skillDetail");
     }
-    if (!target) return;
-    target.classList.remove("recruiter-spotlight");
-    void target.offsetWidth;
-    target.classList.add("recruiter-spotlight");
-    markedTarget = target;
-    highlightTerms(target, query);
-    if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
-    target.scrollIntoView({ behavior: reduceMotion.matches ? "auto" : "smooth", block: "center" });
-    window.setTimeout(function () { target.focus({ preventScroll: true }); },
-      reduceMotion.matches ? 0 : 380);
-    spotlightId = window.setTimeout(clearMarks, 9000);
+    var evidence = findEvidenceTarget(target, query);
+    if (!evidence) return;
+    markedTarget = evidence;
+    evidence.classList.add("recruiter-spotlight");
+    try { highlightTerms(evidence, query); }
+    catch (error) { console.warn("Keyword highlighting unavailable", error); }
+    if (!evidence.hasAttribute("tabindex")) evidence.setAttribute("tabindex", "-1");
+    evidence.scrollIntoView({
+      behavior: reduceMotion.matches ? "auto" : "smooth",
+      block: "center"
+    });
+    window.clearTimeout(focusId);
+    focusId = window.setTimeout(function () {
+      if (panel.hidden && evidence.isConnected) evidence.focus({ preventScroll: true });
+    }, reduceMotion.matches ? 0 : 340);
+    spotlightId = window.setTimeout(clearMarks, 8000);
   }
   function close(restoreFocus) {
+    window.clearTimeout(debounceId);
+    if (restoreFocus) window.clearTimeout(focusId);
     if (panel.hidden) return;
     panel.hidden = true; scrim.hidden = true;
     document.body.classList.remove("skill-search-is-open");
@@ -279,6 +315,8 @@
   }
   function open(source) {
     if (!panel.hidden) return;
+    window.clearTimeout(focusId);
+    window.clearTimeout(debounceId);
     priorFocus = source || document.activeElement;
     var mobileMenu = document.getElementById("mobileMenu");
     var menuButton = document.getElementById("menuButton");
@@ -306,11 +344,19 @@
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       if (found.length) {
         event.preventDefault();
-        setActive(active + (event.key === "ArrowDown" ? 1 : -1));
+        setActive(active + (event.key === "ArrowDown" ? 1 : -1), true);
       }
-    } else if (event.key === "Enter" && found.length) {
-      event.preventDefault();
-      reveal(found[active], input.value);
+    } else if (event.key === "Enter") {
+      // Ensure Enter cannot navigate to a result from a previous query
+      // when the user types faster than the debounce timer.
+      if (renderedQuery !== input.value.trim()) {
+        window.clearTimeout(debounceId);
+        render(input.value);
+      }
+      if (found.length) {
+        event.preventDefault();
+        reveal(found[active] || found[0], input.value);
+      }
     }
   });
   suggestions.addEventListener("click", function (event) {
@@ -345,11 +391,19 @@
       else close(true);
     }
   });
+  // Mouse glow updates are coalesced to one layout read per animation frame.
+  var pointerFrame = 0, pointerX = 0, pointerY = 0;
   panel.addEventListener("pointermove", function (event) {
-    if (reduceMotion.matches || event.pointerType === "touch") return;
-    var bounds = panel.getBoundingClientRect();
-    panel.style.setProperty("--liquid-x", ((event.clientX - bounds.left) / bounds.width * 100).toFixed(1) + "%");
-    panel.style.setProperty("--liquid-y", ((event.clientY - bounds.top) / bounds.height * 100).toFixed(1) + "%");
+    if (reduceMotion.matches || event.pointerType !== "mouse" || panel.hidden) return;
+    pointerX = event.clientX; pointerY = event.clientY;
+    if (pointerFrame) return;
+    pointerFrame = window.requestAnimationFrame(function () {
+      pointerFrame = 0;
+      if (panel.hidden) return;
+      var bounds = panel.getBoundingClientRect();
+      panel.style.setProperty("--liquid-x", ((pointerX - bounds.left) / bounds.width * 100).toFixed(1) + "%");
+      panel.style.setProperty("--liquid-y", ((pointerY - bounds.top) / bounds.height * 100).toFixed(1) + "%");
+    });
   }, { passive: true });
   buildIndex();
 })();

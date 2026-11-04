@@ -105,9 +105,20 @@ def run():
                 page.locator("#portalGrid").scroll_into_view_if_needed()
                 page.wait_for_timeout(650)
                 page.screenshot(path=str(ROOT / "tests/screenshots/project-previews-desktop.png"))
-                page.locator("#build-titan").scroll_into_view_if_needed()
-                page.wait_for_timeout(800)
+                # Tall articles must not depend on IntersectionObserver's
+                # 10% visibility threshold: otherwise they can stay invisible.
+                page.evaluate("""() => {
+                    const target = document.getElementById('build-titan');
+                    window.scrollTo({top: target.getBoundingClientRect().top +
+                        window.scrollY - 115, behavior: 'instant'});
+                }""")
+                page.wait_for_timeout(350)
+                check(page.locator("#build-titan").evaluate(
+                    "(el) => Number(getComputedStyle(el).opacity) > 0.99"
+                ), "desktop full-length article is actually painted")
                 page.screenshot(path=str(ROOT / "tests/screenshots/build-story-titan-desktop.png"))
+                page.locator("#build-titan").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-titan-full.png"))
                 desktop.close()
 
                 mobile = browser.new_context(
@@ -135,10 +146,20 @@ def run():
                 check(True, "mobile input receives focus")
                 phone.keyboard.press("Escape")
                 check(not phone.locator("#skillSearchDialog").is_visible(), "mobile modal closes")
-                phone.locator("#build-learn").scroll_into_view_if_needed()
+                phone.evaluate("""() => {
+                    const target = document.getElementById('build-learn');
+                    window.scrollTo({top: target.getBoundingClientRect().top +
+                        window.scrollY - 90, behavior: 'instant'});
+                }""")
+                phone.wait_for_timeout(350)
+                check(phone.locator("#build-learn").evaluate(
+                    "(el) => Number(getComputedStyle(el).opacity) > 0.99"
+                ), "mobile case study is truly visible, not hidden by scroll reveal")
                 check(phone.locator("#build-learn .case-architecture").is_visible(),
                       "mobile learning case study architecture is accessible")
                 phone.screenshot(path=str(ROOT / "tests/screenshots/build-story-learn-mobile.png"))
+                phone.locator("#build-learn").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-learn-full-mobile.png"))
                 check(not phone_errors, "no uncaught mobile JavaScript errors: " + ";".join(phone_errors[:2]))
                 mobile.close()
             finally:

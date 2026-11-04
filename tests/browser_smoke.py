@@ -50,6 +50,7 @@ def run():
                 page.locator("#skillSearchInput").fill("React")
                 page.locator(".skill-search-result").first.wait_for()
                 (ROOT / "tests/screenshots").mkdir(parents=True, exist_ok=True)
+                page.wait_for_timeout(750)  # Let liquid entrance settle before visual QA
                 page.screenshot(path=str(ROOT / "tests/screenshots/recruiter-desktop.png"))
                 check(page.locator(".skill-search-result").count() >= 2, "React matches real evidence")
                 page.locator("#skillSearchInput").press("Enter")
@@ -67,6 +68,9 @@ def run():
                 page.keyboard.press("Escape")
                 check(not page.locator("#skillSearchDialog").is_visible(), "Escape dismisses modal")
                 check(not errors, "no uncaught desktop JavaScript errors: " + ";".join(errors[:2]))
+                page.locator("#portalGrid").scroll_into_view_if_needed()
+                page.wait_for_timeout(650)
+                page.screenshot(path=str(ROOT / "tests/screenshots/project-previews-desktop.png"))
                 desktop.close()
 
                 mobile = browser.new_context(

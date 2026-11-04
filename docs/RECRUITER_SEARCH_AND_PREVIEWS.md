@@ -57,3 +57,13 @@ Some older portfolio destinations, including the PDF resume and archived site,
 may no longer be available at their referenced paths. This change preserves
 the original URLs rather than substituting unrelated content. When a source
 cannot be captured, the UI labels it accurately and retains the direct link.
+
+### Public screenshot permissions
+
+The SSH deploy script intentionally runs with umask 077 to protect private
+staging and backup files. Newly created public directories otherwise inherit
+mode 0700 and cannot be traversed by the static web server. The deploy script
+now explicitly sets only the allowlisted images/previews directory to 0755,
+including when a prior failed deployment left it mode 0700. WebP and JSON files
+remain mode 0644. No private state directory has its permissions widened.
+Regression tests cover fresh and previously existing private preview folders.

@@ -166,6 +166,28 @@ class DeploymentTests(unittest.TestCase):
         self.remote("remote_rollback.sh", "100-1")
         self.assertFalse((self.web / "images/previews/dinnerradar.webp").exists())
 
+    def test_preview_directory_is_publicly_traversable(self):
+        # The remote install uses umask 077. A new public parent directory
+        # must allow webserver traversal even though files are mode 0644.
+        import stat
+        write(self.repo, "images/previews/dinnerradar.webp", b"webp")
+        self.stage()
+        self.remote("remote_deploy.sh", "100-1")
+        folder = self.web / "images/previews"
+        self.assertEqual(stat.S_IMODE(folder.stat().st_mode), 0o755)
+        self.assertEqual(stat.S_IMODE((folder / "dinnerradar.webp").stat().st_mode), 0o644)
+        self.remote("remote_rollback.sh", "100-1")
+
+    def test_preview_directory_left_by_failed_deploy_is_repaired(self):
+        import stat
+        folder = self.web / "images/previews"
+        folder.mkdir(parents=True, mode=0o700)
+        folder.chmod(0o700)
+        write(self.repo, "images/previews/dinnerradar.webp", b"webp")
+        self.stage()
+        self.remote("remote_deploy.sh", "100-1")
+        self.assertEqual(stat.S_IMODE(folder.stat().st_mode), 0o755)
+
     def test_missing_preview_images_fail_closed(self):
         write(self.repo, "index.html",
               b'<html><img src="/images/previews/dinnerradar.webp"></html>')

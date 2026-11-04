@@ -12,12 +12,12 @@ from scripts.deploy.package_site import GENERATED_PORTAL_ASSETS, is_deployable
 class PortalAssetTests(unittest.TestCase):
     def test_fixed_public_sources_and_internal_fallbacks(self):
         keys = [slug for slug, _, _ in previews.SITES]
-        self.assertEqual(len(keys), 7)
+        self.assertEqual(len(keys), 8)
         self.assertEqual(len(set(keys)), len(keys))
         for _, url, _ in previews.SITES:
             self.assertTrue(url.startswith("https://"))
             self.assertNotIn("@", url)
-        self.assertEqual(len(GENERATED_PORTAL_ASSETS), 8)
+        self.assertEqual(len(GENERATED_PORTAL_ASSETS), 9)
         self.assertTrue(all(is_deployable(path) for path in GENERATED_PORTAL_ASSETS))
         self.assertFalse(is_deployable("images/previews/untrusted.php"))
 

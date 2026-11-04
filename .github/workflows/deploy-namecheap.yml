@@ -184,7 +184,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for slug in dinnerradar realtor-studio creamed chopt resume alext dinner; do
+          for slug in dinnerradar learning-lab realtor-studio creamed chopt resume alext dinner; do
             url="https://alext.io/images/previews/$slug.webp?v=$GITHUB_SHA"
             if ! curl --fail --location --silent --show-error --retry 2 --max-time 25 "$url" -o "$RUNNER_TEMP/preview-$slug.webp"; then
               echo "::error::Public screenshot $slug could not be fetched from $url. Verify images/previews is mode 755 and the file is mode 644." >&2
@@ -198,7 +198,7 @@ jobs:
           from pathlib import Path
           directory = Path(sys.argv[1])
           status = json.loads((directory / "capture-status.json").read_text())
-          slugs = ("dinnerradar", "realtor-studio", "creamed", "chopt", "resume", "alext", "dinner")
+          slugs = ("dinnerradar", "learning-lab", "realtor-studio", "creamed", "chopt", "resume", "alext", "dinner")
           assert set(status["items"]) == set(slugs), "Capture status missing sites"
           for slug in slugs:
               image = (directory / ("preview-" + slug + ".webp")).read_bytes()

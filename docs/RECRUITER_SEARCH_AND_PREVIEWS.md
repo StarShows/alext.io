@@ -33,7 +33,7 @@ is always reachable. Preview images have subtle scroll-based, transform-only
 parallax; reduced-motion preferences are respected.
 
 The fixed source list lives in scripts/deploy/generate_portal_previews.py and
-covers seven public portfolio destinations. On each approved production build,
+covers eight public portfolio destinations. On each approved production build,
 headless Chrome attempts screenshots and compresses successful captures into
 1200 x 750 WebP files. If a source cannot be captured, or is a PDF viewer,
 the build creates an explicitly labeled Preview unavailable graphic. This is
@@ -44,7 +44,7 @@ third-party screenshot service at visitor time.
 ### Deployment and verification
 
 The approved Namecheap release serves images from /images/previews/ on
-alext.io. The static packager includes only seven fixed WebP names and the
+alext.io. The static packager includes only eight fixed WebP names and the
 status manifest. It rejects missing files and continues to exclude protected
 or unrelated site areas such as /learn.
 
@@ -67,3 +67,19 @@ now explicitly sets only the allowlisted images/previews directory to 0755,
 including when a prior failed deployment left it mode 0700. WebP and JSON files
 remain mode 0644. No private state directory has its permissions widened.
 Regression tests cover fresh and previously existing private preview folders.
+
+### Engineering build stories
+
+The homepage has three static, SEO-readable, keyboard-accessible engineering
+case studies for the Learning Lab, Disney Titan, and Hoag/Epic. They describe
+the engineering story, implementation boundaries, conceptual request/data
+flows and stack without exposing private project source or patient details.
+
+The Learning Lab also appears as a public project card with a locally captured
+screenshot from https://alext.io/learn/. The fixed capture allowlist now has
+eight destinations. The recruiter search indexes all three article bodies as
+high-confidence "Engineering case study" records. They are sourced solely
+from site content, with no external search service.
+
+Production deployments remain owner-approved. PR validation generates eight
+WebP assets and tests both desktop and mobile case study accessibility.

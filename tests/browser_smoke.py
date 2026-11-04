@@ -42,8 +42,8 @@ def run():
                 page.on("pageerror", lambda exc: errors.append(str(exc)))
                 page.goto(base + "/", wait_until="domcontentloaded", timeout=25000)
                 page.locator("#experienceGrid .experience-card").first.wait_for()
-                check(page.locator("#portalGrid .portal-card").count() == 7, "seven portfolio cards")
-                check(page.locator(".portal-snapshot").count() == 7, "seven local preview images")
+                check(page.locator("#portalGrid .portal-card").count() == 8, "eight portfolio cards")
+                check(page.locator(".portal-snapshot").count() == 8, "eight local preview images")
                 check(page.locator(".nav-actions .btn").evaluate(
                     """(el) => {
                       const button = el.getBoundingClientRect();
@@ -55,6 +55,16 @@ def run():
                 check(page.locator(".nav-links a:visible").count() >= 3,
                       "desktop keeps primary navigation accessible")
                 check(page.locator(".portal-iframe[src]").count() == 0, "third-party iframes are opt-in")
+                check(page.locator("#case-studies .case-study").count() == 3, "three fully readable build stories")
+                check(page.locator("#case-studies .case-flow-step").count() == 12, "architectural flow for all three projects")
+                check(page.locator("#build-learn a[href='https://alext.io/learn/']").count() >= 1,
+                      "live Learning Lab linked from its case study")
+                check(page.locator("#build-titan").inner_text().find("Airtable") >= 0 and
+                      page.locator("#build-titan").inner_text().find("Bedrock") >= 0,
+                      "Titan distinguishes Airtable POC from full AI-enabled platform")
+                check(page.locator("#build-hoag").inner_text().find("FHIR") >= 0 and
+                      page.locator("#build-hoag").inner_text().find("Cloverleaf") >= 0,
+                      "Hoag explains FHIR and Cloverleaf interoperability")
                 page.locator(".skill-search-trigger").click()
                 check(page.locator("#skillSearchDialog").is_visible(), "desktop skill finder opens")
                 page.locator("#skillSearchInput").fill("React")
@@ -75,12 +85,40 @@ def run():
                 page.locator(".skill-search-result").first.wait_for()
                 check(page.locator(".skill-search-result").count() >= 1,
                       "less prominent technologies in the complete stack summary are searchable")
+                page.locator("#skillSearchInput").fill("Bedrock")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('The proof of concept');
+                }""")
+                check("The proof of concept" in page.locator(".skill-search-result").first.inner_text(),
+                      "Bedrock search ranks Titan's real implementation story")
+                page.locator("#skillSearchInput").fill("FHIR")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('scheduling experience');
+                }""")
+                check("scheduling experience" in page.locator(".skill-search-result").first.inner_text(),
+                      "FHIR search surfaces Hoag integration evidence")
                 page.keyboard.press("Escape")
                 check(not page.locator("#skillSearchDialog").is_visible(), "Escape dismisses modal")
                 check(not errors, "no uncaught desktop JavaScript errors: " + ";".join(errors[:2]))
                 page.locator("#portalGrid").scroll_into_view_if_needed()
                 page.wait_for_timeout(650)
                 page.screenshot(path=str(ROOT / "tests/screenshots/project-previews-desktop.png"))
+                # Tall articles must not depend on IntersectionObserver's
+                # 10% visibility threshold: otherwise they can stay invisible.
+                page.evaluate("""() => {
+                    const target = document.getElementById('build-titan');
+                    window.scrollTo({top: target.getBoundingClientRect().top +
+                        window.scrollY - 115, behavior: 'instant'});
+                }""")
+                page.wait_for_timeout(350)
+                check(page.locator("#build-titan").evaluate(
+                    "(el) => Number(getComputedStyle(el).opacity) > 0.99"
+                ), "desktop full-length article is actually painted")
+                page.screenshot(path=str(ROOT / "tests/screenshots/build-story-titan-desktop.png"))
+                page.locator("#build-titan").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-titan-full.png"))
                 desktop.close()
 
                 mobile = browser.new_context(
@@ -108,6 +146,20 @@ def run():
                 check(True, "mobile input receives focus")
                 phone.keyboard.press("Escape")
                 check(not phone.locator("#skillSearchDialog").is_visible(), "mobile modal closes")
+                phone.evaluate("""() => {
+                    const target = document.getElementById('build-learn');
+                    window.scrollTo({top: target.getBoundingClientRect().top +
+                        window.scrollY - 90, behavior: 'instant'});
+                }""")
+                phone.wait_for_timeout(350)
+                check(phone.locator("#build-learn").evaluate(
+                    "(el) => Number(getComputedStyle(el).opacity) > 0.99"
+                ), "mobile case study is truly visible, not hidden by scroll reveal")
+                check(phone.locator("#build-learn .case-architecture").is_visible(),
+                      "mobile learning case study architecture is accessible")
+                phone.screenshot(path=str(ROOT / "tests/screenshots/build-story-learn-mobile.png"))
+                phone.locator("#build-learn").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-learn-full-mobile.png"))
                 check(not phone_errors, "no uncaught mobile JavaScript errors: " + ";".join(phone_errors[:2]))
                 mobile.close()
             finally:

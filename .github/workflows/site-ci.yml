@@ -73,3 +73,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
           compression-level: 0
+      - name: Save desktop and mobile screenshot QA
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: recruiter-search-ui-qa
+          path: tests/screenshots/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0

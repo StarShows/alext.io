@@ -45,8 +45,13 @@ def run():
                 check(page.locator("#portalGrid .portal-card").count() == 7, "seven portfolio cards")
                 check(page.locator(".portal-snapshot").count() == 7, "seven local preview images")
                 check(page.locator(".nav-actions .btn").evaluate(
-                    "(el) => el.scrollHeight <= el.clientHeight + 1"
-                ), "desktop contact action remains a single line")
+                    """(el) => {
+                      const button = el.getBoundingClientRect();
+                      const nav = el.closest('nav').getBoundingClientRect();
+                      return getComputedStyle(el).whiteSpace === 'nowrap' &&
+                        button.left >= nav.left - 1 && button.right <= nav.right + 1;
+                    }"""
+                ), "desktop contact button fits its navigation without wrapping")
                 check(page.locator(".nav-links a:visible").count() >= 3,
                       "desktop keeps primary navigation accessible")
                 check(page.locator(".portal-iframe[src]").count() == 0, "third-party iframes are opt-in")

@@ -148,7 +148,7 @@ class DeploymentTests(unittest.TestCase):
     def test_snapshot_archive_includes_only_expected_generated_files(self):
         paths = [
             "images/previews/" + slug + ".webp"
-            for slug in ("dinnerradar", "realtor-studio", "creamed",
+            for slug in ("dinnerradar", "learning-lab", "realtor-studio", "creamed",
                          "chopt", "resume", "alext", "dinner")
         ]
         paths.append("images/previews/capture-status.json")

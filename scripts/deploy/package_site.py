@@ -32,7 +32,7 @@ REQUIRED_BRAND_ASSETS = GENERATED_BRAND_ASSETS | {
     "images/favicon.svg", "images/site-manifest.json",
 }
 PORTAL_SNAPSHOT_KEYS = (
-    "dinnerradar", "realtor-studio", "creamed",
+    "dinnerradar", "learning-lab", "realtor-studio", "creamed",
     "chopt", "resume", "alext", "dinner",
 )
 GENERATED_PORTAL_ASSETS = frozenset(

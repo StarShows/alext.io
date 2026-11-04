@@ -70,6 +70,7 @@
     addCards("#roleWall .role-card", "Career proof", 15, ".role-body h3", ".role-side strong");
     addCards("#experienceGrid .experience-card", "Shipped work", 24, "h3", ".source");
     addCards("#portalGrid .portal-card", "Public project", 17, ".portal-top h3", ".portal-kicker");
+    addCards("#case-studies .case-study", "Engineering case study", 40, ".case-study-title", ".case-study-meta");
     addCards("#ai .ai-card", "Engineering approach", 8, "h3", null);
     if (bridge && Array.isArray(bridge.skills)) {
       bridge.skills.forEach(function (skill) {

@@ -19,6 +19,7 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 
 SITES = (
     ("dinnerradar", "https://dinnerradar.com/", "DinnerRadar"),
+    ("learning-lab", "https://alext.io/learn/", "Full Stack Learning Lab"),
     ("realtor-studio", "https://realtor-studio.com/", "Realtor Studio"),
     ("creamed", "https://justgetcreamed.com/", "Creamed"),
     ("chopt", "https://www.choptsalad.com/locations", "CHOPT"),

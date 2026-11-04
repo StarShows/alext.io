@@ -11,7 +11,7 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[2]
 ALLOWED = {
     "js": {".js"},
-    "images": {".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif", ".avif", ".ico"},
+    "images": {".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif", ".avif", ".ico", ".json"},
     "fonts": {".woff", ".woff2", ".ttf", ".otf", ".eot", ".svg", ".css", ".html"},
     "public/css": {".css", ".map", ".woff", ".woff2", ".ttf", ".eot", ".svg", ".html", ".docx"},
     "public/files": {".pdf", ".docx", ".html", ".css", ".woff", ".woff2", ".ttf", ".eot", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".json", ".js"},
@@ -20,6 +20,17 @@ ALLOWED = {
 }
 MAX_FILE_SIZE = 20 * 1024 * 1024
 MAX_RELEASE_SIZE = 100 * 1024 * 1024
+
+# The following files are reproducibly generated in the secret-free CI build.
+# No other untracked file may enter a production release.
+GENERATED_BRAND_ASSETS = frozenset({
+    "images/favicon.ico", "images/favicon-16.png", "images/favicon-32.png",
+    "images/apple-touch-icon.png", "images/icon-192.png", "images/icon-512.png",
+    "images/social-preview.jpg",
+})
+REQUIRED_BRAND_ASSETS = GENERATED_BRAND_ASSETS | {
+    "images/favicon.svg", "images/site-manifest.json",
+}
 
 
 def is_deployable(path: str) -> bool:
@@ -36,7 +47,16 @@ def is_deployable(path: str) -> bool:
 
 def build(out: Path, root: Path = ROOT) -> list[str]:
     paths = subprocess.check_output(["git", "ls-files", "-z"], cwd=root).decode().rstrip("\0").split("\0")
-    candidates = sorted(path for path in paths if is_deployable(path))
+    if b"/images/social-preview.jpg" in (root / "index.html").read_bytes():
+        missing = sorted(p for p in REQUIRED_BRAND_ASSETS if not (root / p).is_file())
+        if missing:
+            raise ValueError(f"Missing generated brand assets: {', '.join(missing)}")
+    # Explicitly include build-generated binaries. Keep the rest of the archive
+    # limited to tracked, allowlisted files (no unexpected untracked uploads).
+    candidates = sorted(
+        {path for path in paths if is_deployable(path)}
+        | {path for path in GENERATED_BRAND_ASSETS if (root / path).is_file()}
+    )
     if "index.html" not in candidates:
         raise ValueError("index.html is missing from the tracked release")
     total = 0

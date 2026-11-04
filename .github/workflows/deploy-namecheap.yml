@@ -55,6 +55,13 @@ jobs:
         with:
           node-version: '22'
           package-manager-cache: false
+      - name: Generate browser and social media images
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/brand-venv"
+          "$RUNNER_TEMP/brand-venv/bin/python" -m pip install --disable-pip-version-check --no-deps --only-binary=:all: Pillow==11.3.0
+          "$RUNNER_TEMP/brand-venv/bin/python" scripts/deploy/generate_brand_assets.py
       - name: Build and test release
         shell: bash
         run: |

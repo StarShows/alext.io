@@ -116,6 +116,22 @@ class DeploymentTests(unittest.TestCase):
         self.assertFalse((self.web / "public/files/Alexander Resume.pdf").exists())
         self.assertEqual((self.web / "public/sites/learning-lab/index.html").read_bytes(), b"live app, keep me")
 
+    def test_explicit_generated_assets_are_included_without_git_add(self):
+        write(self.repo, "images/social-preview.jpg", b"rendered social preview")
+        write(self.repo, "images/favicon.ico", b"rendered browser icon")
+        write(self.repo, "images/random-untracked.jpg", b"never deploy me")
+        _, names = self.stage()
+        self.assertIn("images/social-preview.jpg", names)
+        self.assertIn("images/favicon.ico", names)
+        self.assertNotIn("images/random-untracked.jpg", names)
+
+    def test_brand_metadata_requires_complete_asset_set(self):
+        write(self.repo, "index.html",
+              b'<html><meta property="og:image" '
+              b'content="https://alext.io/images/social-preview.jpg"></html>')
+        with self.assertRaisesRegex(ValueError, "Missing generated brand assets"):
+            self.stage()
+
     def test_package_rejects_tracked_symlink(self):
         (self.repo / "js" / "evil.js").symlink_to(self.repo / "index.html")
         subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)

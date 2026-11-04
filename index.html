@@ -1457,18 +1457,19 @@
         <div class="section-head reveal">
           <p class="section-kicker">Inside the build / selected engineering stories</p>
           <h2 class="section-title" id="buildStoriesTitle">The interesting part is <span class="gradient-text">under the hood.</span></h2>
-          <p class="section-copy">Three different problems. Three very different systems. Here's the part a resume bullet can't fit: why I built them, how the pieces talk to each other, and the decisions that made the software useful.</p>
+          <p class="section-copy">Four different problems. Four very different systems. Here's the part a resume bullet can't fit: why I built them, how the pieces talk to each other, and the decisions that made the software useful.</p>
         </div>
         <nav class="case-jump-links reveal" aria-label="Jump to an engineering case study">
           <a href="#build-learn"><span class="case-jump-index">01 / LIVE</span><strong>Full Stack Learning Lab</strong><span class="case-jump-arrow" aria-hidden="true">↗</span></a>
-          <a href="#build-titan"><span class="case-jump-index">02 / ENTERPRISE</span><strong>Disney Titan</strong><span class="case-jump-arrow" aria-hidden="true">↗</span></a>
-          <a href="#build-hoag"><span class="case-jump-index">03 / HEALTHCARE</span><strong>Hoag + Epic</strong><span class="case-jump-arrow" aria-hidden="true">↗</span></a>
+          <a href="#build-dinnerradar"><span class="case-jump-index">02 / LIVE</span><strong>DinnerRadar</strong><span class="case-jump-arrow" aria-hidden="true">↗</span></a>
+          <a href="#build-titan"><span class="case-jump-index">03 / ENTERPRISE</span><strong>Disney Titan</strong><span class="case-jump-arrow" aria-hidden="true">↗</span></a>
+          <a href="#build-hoag"><span class="case-jump-index">04 / HEALTHCARE</span><strong>Hoag + Epic</strong><span class="case-jump-arrow" aria-hidden="true">↗</span></a>
         </nav>
 
         <div class="case-stories-list">
           <article class="case-study case-study--learn" id="build-learn" tabindex="-1" aria-labelledby="learnCaseTitle">
             <div class="case-study-intro">
-              <div class="case-study-meta"><span class="case-study-count">01 / 03</span><span>Independent product · Designed and built by me</span><span class="case-status case-status--live">Live product</span></div>
+              <div class="case-study-meta"><span class="case-study-count">01 / 04</span><span>Independent product · Designed and built by me</span><span class="case-status case-status--live">Live product</span></div>
               <div class="case-study-title-row">
                 <div>
                   <p class="case-study-overline">ALEXT.IO / LEARN</p>
@@ -1508,9 +1509,72 @@
             <div class="case-stack"><span class="case-stack-label">TECH STACK</span><ul aria-label="Learning Lab technologies"><li>React</li><li>JavaScript</li><li>Node.js</li><li>SQLite</li><li>OAuth</li><li>REST APIs</li><li>cPanel / Namecheap</li></ul></div>
           </article>
 
+          <article class="case-study case-study--dinnerradar" id="build-dinnerradar" tabindex="-1" aria-labelledby="dinnerRadarCaseTitle">
+            <div class="case-study-intro">
+              <div class="case-study-meta"><span class="case-study-count">02 / 04</span><span>Founder-built product · End-to-end engineering</span><span class="case-status case-status--live">Live product</span></div>
+              <div class="case-study-title-row">
+                <div>
+                  <p class="case-study-overline">DINNERRADAR.COM / PRODUCT ENGINEERING</p>
+                  <h3 class="case-study-title" id="dinnerRadarCaseTitle">One question. Two ways to answer it. A lot of engineering underneath.</h3>
+                  <p class="case-study-deck">I designed, built, and deployed DinnerRadar to make deciding what to eat feel effortless. One path recommends an independent restaurant after checking its availability. The other turns ingredients already in your kitchen into a recipe. Under both is a full-stack product designed around reliable data, local AI, and responsible operating costs.</p>
+                </div>
+                <a class="case-primary-link" href="https://dinnerradar.com/" target="_blank" rel="noopener noreferrer">Try DinnerRadar <span aria-hidden="true">↗</span></a>
+              </div>
+              <div class="case-dinner-modes" aria-label="Two DinnerRadar product experiences">
+                <div class="case-dinner-mode">
+                  <span class="case-dinner-mode-label">01 / EATING OUT</span>
+                  <strong>Find one great place.</strong>
+                  <p>Discover independently owned restaurants, check opening information, and offer a useful pick instead of endless search results.</p>
+                </div>
+                <div class="case-dinner-mode">
+                  <span class="case-dinner-mode-label">02 / DINNER AT HOME</span>
+                  <strong>Use what's in your fridge.</strong>
+                  <p>Turn pantry ingredients into a practical recipe with locally hosted generation and live progress updates.</p>
+                </div>
+              </div>
+            </div>
+            <div class="case-study-body">
+              <div class="case-story-copy">
+                <div class="case-story-block">
+                  <h4><span>01</span> The problem</h4>
+                  <p>Choosing dinner shouldn't require scrolling through dozens of listings or trusting stale restaurant data. I wanted a simple, mobile-friendly product that gives one useful answer, whether someone is heading out or cooking with ingredients they already have.</p>
+                </div>
+                <div class="case-story-block">
+                  <h4><span>02</span> Discovery built around evidence</h4>
+                  <p>I built a restaurant discovery pipeline using OpenStreetMap and the Overpass API, with background workers that populate and refresh city coverage. Recommendations filter out chains, check local hours and listing evidence, and use available website signals to identify closures. The goal is to validate what the system can know rather than ask an AI model to invent ratings, opening hours, or business facts.</p>
+                </div>
+                <div class="case-story-block">
+                  <h4><span>03</span> Local AI with deliberate guardrails</h4>
+                  <p>For at-home meals, the application can generate recipes from a user's pantry through a locally hosted model running with Ollama. A shared generation scheduler uses leases and resource checks to prioritize people requesting recipes over background enrichment. Server-Sent Events stream job progress back to the interface. If the model is unavailable, restaurant discovery remains functional using ordinary application logic and SQLite full-text search.</p>
+                </div>
+                <div class="case-story-block">
+                  <h4><span>04</span> The architecture and cost tradeoffs</h4>
+                  <p>The production system runs Next.js, TypeScript, SQLite in WAL mode, background workers, and local inference on a small single-host DigitalOcean deployment. I deliberately chose fewer moving parts over unnecessary managed infrastructure. Durable job queues, retries, heartbeats, and recovery logic help keep slower discovery work separate from user requests.</p>
+                </div>
+                <div class="case-story-block">
+                  <h4><span>05</span> Security, billing, and production delivery</h4>
+                  <p>Anonymous visitors can try the product without signing up. Usage is enforced on the server and counted only after a successful recommendation. Passwordless email and Google sign-in support accounts, while Stripe handles subscriptions and billing. CI runs type checking, automated tests, and real-browser checks; versioned releases pass through QA before production with additive database migrations and rollback support.</p>
+                </div>
+                <p class="case-story-takeaway">This is the kind of product I love building: a simple user experience backed by careful data validation, constrained AI, background orchestration, security, and operational discipline. I own the entire journey from concept to live deployment.</p>
+              </div>
+              <figure class="case-architecture" aria-label="Conceptual DinnerRadar system showing the interface, restaurant discovery and verification, state storage, local AI, and production operations">
+                <div class="case-architecture-top"><span class="case-diagram-indicator"></span><span>HOW IT WORKS</span><span>TWO PRODUCT PATHS</span></div>
+                <div class="case-flow">
+                  <div class="case-flow-step"><span class="case-flow-index">01 · EXPERIENCE</span><strong>Next.js + React + TypeScript</strong><small>One-tap restaurant picks and pantry-based recipes</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">02 · RESTAURANT DATA</span><strong>OpenStreetMap + Overpass</strong><small>City discovery, independent-business filtering, hours and closure checks</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">03 · DURABLE STATE</span><strong>SQLite WAL + FTS5</strong><small>Catalog, accounts, history, quotas, and background job queues</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">04 · RECIPE ENGINE</span><strong>Local AI + Server-Sent Events</strong><small>Pantry recipes, foreground-first model scheduling, live progress</small></div>
+                  <div class="case-flow-step"><span class="case-flow-index">05 · OPERATIONS</span><strong>Stripe + versioned CI/CD</strong><small>Passwordless accounts, success-based usage, QA and rollback</small></div>
+                </div>
+                <figcaption>Conceptual component map, not a literal sequential request path. Eating out and cooking at home are separate workflows that share application infrastructure. No private keys, model prompts, or deployment configuration are shown.</figcaption>
+              </figure>
+            </div>
+            <div class="case-stack"><span class="case-stack-label">TECH STACK</span><ul aria-label="DinnerRadar technologies"><li>Next.js</li><li>React</li><li>TypeScript</li><li>Node.js</li><li>SQLite / WAL</li><li>FTS5</li><li>OpenStreetMap</li><li>Overpass API</li><li>Ollama</li><li>Server-Sent Events</li><li>Stripe</li><li>Vitest</li><li>Playwright</li><li>GitHub Actions</li><li>DigitalOcean</li></ul></div>
+          </article>
+
           <article class="case-study case-study--titan" id="build-titan" tabindex="-1" aria-labelledby="titanCaseTitle">
             <div class="case-study-intro">
-              <div class="case-study-meta"><span class="case-study-count">02 / 03</span><span>The Walt Disney Company · Enterprise engineering</span><span class="case-status">Private system</span></div>
+              <div class="case-study-meta"><span class="case-study-count">03 / 04</span><span>The Walt Disney Company · Enterprise engineering</span><span class="case-status">Private system</span></div>
               <div class="case-study-title-row">
                 <div>
                   <p class="case-study-overline">DISNEY / TITAN · ARCHITECTURE + DELIVERY</p>
@@ -1573,7 +1637,7 @@
 
           <article class="case-study case-study--hoag" id="build-hoag" tabindex="-1" aria-labelledby="hoagCaseTitle">
             <div class="case-study-intro">
-              <div class="case-study-meta"><span class="case-study-count">03 / 03</span><span>Hoag Hospital · Healthcare integration</span><span class="case-status">Private system</span></div>
+              <div class="case-study-meta"><span class="case-study-count">04 / 04</span><span>Hoag Hospital · Healthcare integration</span><span class="case-status">Private system</span></div>
               <div class="case-study-title-row">
                 <div>
                   <p class="case-study-overline">HOAG / EPIC INTEGRATION</p>
@@ -1869,7 +1933,7 @@
     var marqueeItems = ["Full Stack Learning Lab","Amazon Bedrock","DAG orchestration","Epic FHIR","HL7","Next.js","SQLite","OAuth","AI Engineering","AI Solutions","MCP Servers","Model Context Protocol","Tool Calling","Agent Workflows","LLM APIs","AI automation","React","CHOPT checkout","Braintree payments","TypeScript","Node.js","Express","Python","SQL","AWS Lambda","S3","DynamoDB","API Gateway","Azure Functions","Snowflake","ETL","PCI","SOX","GDPR","HIPAA","D3.js","Plotly Dash","Mapbox","Tableau","DataDog","SonarQube","PostgreSQL","MySQL","MariaDB","Jest","Cypress","Mocha","GitHub Actions","Jenkins","Terraform","Epic","Cloverleaf","WordPress","PHP","Angular","Aurelia","Storybook","Braintree","Stripe","Twilio","Sentry","Linode","LAMP","LEMP"];
 
     var projectFrames = [
-      { label:"Founder-built product", title:"DinnerRadar", snapshot:"dinnerradar", url:urls.dinnerRadar, note:"A full-stack dinner concierge I built and launched. One tap recommends a verified-open independent restaurant, or turns ingredients from your fridge into a custom recipe. I own the product end to end, from UX and APIs to data quality, self-hosted AI, and production delivery." },
+      { label:"Founder-built product", title:"DinnerRadar", snapshot:"dinnerradar", caseId:"build-dinnerradar", url:urls.dinnerRadar, note:"A full-stack dinner concierge I built and launched. One tap recommends a verified-open independent restaurant, or turns ingredients from your fridge into a custom recipe. I own the product end to end, from UX and APIs to data quality, self-hosted AI, and production delivery." },
       { label:"Independent learning product", title:"Full Stack Learning Lab", snapshot:"learning-lab", caseId:"build-learn", url:"https://alext.io/learn/", note:"A deployed full-stack learning product with interactive JavaScript exercises, instant feedback, lessons, quizzes, XP and durable per-user progress. React, Node.js, authentication and SQLite back a hands-on learning experience." },
       { label:"Founder agency",     title:"Realtor Studio", snapshot:"realtor-studio",        url:urls.realtor,    note:"Public-facing agency surface for realtor sites, conversion systems, local positioning, and client delivery. The preview is a window into the business, not the whole machine." },
       { label:"Product founder",    title:"Creamed", snapshot:"creamed",               url:urls.creamed,    note:"DTC product execution: brand, ecommerce surface, compliance awareness, product operations, and positioning." },

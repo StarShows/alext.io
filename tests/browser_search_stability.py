@@ -64,7 +64,9 @@ def exercise(page, terms, mobile=False):
     field.press("Enter")
     trigger.click()
     page.wait_for_timeout(420)
-    require(field.is_focused(), "late focus cannot escape from open search")
+    require(page.evaluate(
+        "document.activeElement === document.getElementById('skillSearchInput')"
+    ), "late focus cannot escape from open search")
     page.keyboard.press("Escape")
 
     # Regex-looking user input is treated as ordinary text and cannot inject

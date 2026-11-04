@@ -60,6 +60,10 @@ def run():
                 page.locator("#skillSearchInput").fill("quantum-fabrication-xyz")
                 page.locator(".skill-search-empty").wait_for()
                 check(page.locator(".skill-search-empty").count() == 1, "unknown skill is not invented")
+                page.locator("#skillSearchInput").fill("DynamoDB")
+                page.locator(".skill-search-result").first.wait_for()
+                check(page.locator(".skill-search-result").count() >= 1,
+                      "less prominent technologies in the complete stack summary are searchable")
                 page.keyboard.press("Escape")
                 check(not page.locator("#skillSearchDialog").is_visible(), "Escape dismisses modal")
                 check(not errors, "no uncaught desktop JavaScript errors: " + ";".join(errors[:2]))

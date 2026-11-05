@@ -138,11 +138,12 @@ def run():
                 check("One question. Two ways" in page.locator(".skill-search-result").first.inner_text(),
                       "SSE alias finds DinnerRadar recipe progress architecture")
                 page.locator("#skillSearchInput").fill("headless WordPress")
-                page.wait_for_timeout(240)
-                wp_results = page.locator(".skill-search-result").all_inner_texts()
-                print("HEADLESS WORDPRESS SEARCH RESULTS:", repr(wp_results[:5]), flush=True)
-                check(any("I built WordPress experiences" in text for text in wp_results),
-                      "headless WordPress query includes the Realtor Studio case study")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('From hand-coded themes');
+                }""")
+                check("From hand-coded themes" in page.locator(".skill-search-result").first.inner_text(),
+                      "headless WordPress query ranks Realtor Studio's architecture first")
                 page.locator("#skillSearchInput").fill("FHIR")
                 page.wait_for_function("""() => {
                     const first = document.querySelector('#skillSearchResults .skill-search-result');

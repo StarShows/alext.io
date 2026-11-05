@@ -2,10 +2,10 @@
    The original compiled stylesheet does not define .box_yellow/.box_yellowa.
    This separate layer preserves the original document and design history. */
 
-/* The hand-coded SCSS uses the locally hosted Franklin Gothic Condensed
-   family. Prevent the newer text blocks from falling back to Times New Roman. */
+/* Prefer the Century Gothic type family already used for headings and buttons
+   in the pinned stylesheet. Avoid default serif for newer unstyled text. */
 .container {
-  font-family: "Franklin Gothic Condensed", "Arial Narrow", Arial, sans-serif;
+  font-family: "Century Gothic", CenturyGothic, AppleGothic, Arial, sans-serif;
   font-size: 17px;
   line-height: 1.55;
 }
@@ -25,7 +25,7 @@
   border: 2px solid #ffe81f;
   background-color: #ffe81f;
   color: #151007;
-  font: 600 19px/1.5 "Franklin Gothic Condensed", "Arial Narrow", Arial, sans-serif;
+  font: 600 19px/1.5 "Century Gothic", CenturyGothic, AppleGothic, Arial, sans-serif;
   text-align: center;
   overflow-wrap: anywhere;
 }

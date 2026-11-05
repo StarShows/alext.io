@@ -86,6 +86,12 @@ def run():
                     check(page.locator(".container .header.h2").first.evaluate(
                         "(el) => getComputedStyle(el).fontSize === '20px'"
                     ), label + " historical secondary heading font size")
+                    check(page.locator(".container .header").first.evaluate(
+                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
+                    ), label + " original heading font is not overwritten")
+                    check(page.locator(".content .portfolio_item .button").first.evaluate(
+                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
+                    ), label + " original button font is not overwritten")
                     check(page.locator(".container .header.mobile_only").is_visible() == (label == "mobile"),
                           label + " original responsive heading behavior")
                     check(page.evaluate(
@@ -102,6 +108,28 @@ def run():
                         }"""
                     )
                     check(fonts > 0, label + " original local WOFF font resolves")
+                    banner = page.locator(".box_yellow")
+                    check(banner.count() == 1, label + " 2025 project banner exists")
+                    check(banner.evaluate(
+                        """el => {
+                          const s = getComputedStyle(el);
+                          return s.backgroundColor === 'rgb(255, 232, 31)' &&
+                              s.color === 'rgb(21, 16, 7)' &&
+                              s.fontSize === '19px' ||
+                            s.backgroundColor === 'rgb(255, 232, 31)' &&
+                              s.color === 'rgb(21, 16, 7)' &&
+                              s.fontSize === '17px';
+                        }"""
+                    ), label + " missing project banner color and type are restored")
+                    check(page.locator(".box_yellow .box_yellowa").first.evaluate(
+                        "(el) => getComputedStyle(el).color === 'rgb(25, 25, 25)'"
+                    ), label + " project links no longer use default browser blue")
+                    check(page.locator(".container").evaluate(
+                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
+                    ), label + " archive text matches original header type family")
+                    check(page.evaluate(
+                        "() => document.documentElement.scrollWidth <= window.innerWidth + 2"
+                    ), label + " archive has no horizontal scroll overflow")
                     check(not failed, label + " all requested legacy assets return 200")
                     check(not failed, label + " no local assets fail: " +
                           "; ".join(failed[:3]))

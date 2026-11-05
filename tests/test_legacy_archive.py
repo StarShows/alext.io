@@ -58,6 +58,24 @@ class LegacyPortfolioTests(unittest.TestCase):
         self.assertIn('url("/public/fonts/Franklin%20Gothic%20Condensed.woff")', css)
         self.assertTrue((ROOT / "public/fonts/Franklin Gothic Condensed.woff").is_file())
 
+    def test_newer_html_has_a_separate_style_compatibility_layer(self):
+        html = ARCHIVE.read_text(encoding="utf-8")
+        css_file = ROOT / "public/files/old-compat.css"
+        self.assertTrue(css_file.is_file())
+        self.assertTrue(is_deployable("public/files/old-compat.css"))
+        self.assertIn('/public/files/old-compat.css?v=legacy-20261104', html)
+        css = css_file.read_text(encoding="utf-8")
+        for selector in (".container .box_yellow {",
+                         ".container .box_yellow .box_yellowa {",
+                         ".container .content .portfolio_item > p,",
+                         ".container .footer .paragraph_footer,",
+                         "@media (max-width: 736px)"):
+            with self.subTest(selector=selector):
+                self.assertIn(selector, css)
+        # Historic compiled CSS stays unchanged and is loaded first.
+        self.assertLess(html.index("/public/files/old.css?v="),
+                        html.index("/public/files/old-compat.css?v="))
+
     def test_original_assets_resolve_at_site_root(self):
         content = ARCHIVE.read_text(encoding="utf-8")
         doc = LegacyDocument()
@@ -65,6 +83,7 @@ class LegacyPortfolioTests(unittest.TestCase):
         self.assertEqual(doc.base, "/")
         expected = (
             "public/files/old.css",
+            "public/files/old-compat.css",
             "images/avitannenbaum.jpeg",
             "js/scripts.js",
             "js/starBackground.js",

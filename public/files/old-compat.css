@@ -1,0 +1,70 @@
+/* Compatibility for the 2025 HTML archive and its pinned 2023 CSS.
+   The original compiled stylesheet does not define .box_yellow/.box_yellowa.
+   This separate layer preserves the original document and design history. */
+
+/* Prefer the Century Gothic type family already used for headings and buttons
+   in the pinned stylesheet. Avoid default serif for newer unstyled text. */
+.container {
+  font-family: "Century Gothic", CenturyGothic, AppleGothic, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+/* The 2025 project-update banner replaced a green availability banner in
+   the HTML, without a matching CSS revision in version control. */
+.container .box_container {
+  width: 100%;
+  box-sizing: border-box;
+}
+.container .box_yellow {
+  width: min(100%, 1050px);
+  box-sizing: border-box;
+  margin: 24px 0;
+  padding: 17px 24px;
+  border-radius: 8px;
+  border: 2px solid #ffe81f;
+  background-color: #ffe81f;
+  color: #151007;
+  font: 600 19px/1.5 "Century Gothic", CenturyGothic, AppleGothic, Arial, sans-serif;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.container .box_yellow .box_yellowa {
+  color: #191919;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.container .box_yellow .box_yellowa:hover,
+.container .box_yellow .box_yellowa:focus-visible {
+  color: #801100;
+  text-decoration-thickness: 2px;
+}
+
+/* Restore cohesive historic typography for areas left unstyled by the older
+   CSS. Retain existing red buttons, boxed headings and red-blue gradient. */
+.container .content .portfolio_item > p,
+.container .content .portfolio_item > .paragraph,
+.container .footer .paragraph_footer,
+.container .footer .hint {
+  color: #ffe81f;
+  font-size: 16px;
+  line-height: 1.55;
+}
+/* Existing Century Gothic heading and button typography stays untouched. */
+
+@media (max-width: 736px) {
+  .container .container_inner {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 18px 14px 26px;
+  }
+  .container .box_yellow {
+    font-size: 17px;
+    margin: 12px 0 20px;
+    padding: 14px 15px;
+  }
+  .container .content .portfolio_item .button { font-size: 19px; }
+  .container .header { overflow-wrap: break-word; }
+}

@@ -203,6 +203,10 @@ class DeploymentTests(unittest.TestCase):
             folder.mkdir(parents=True, exist_ok=True)
             folder.chmod(0o700)
         self.stage()
+        # The local test packager creates .alext-deploy before the remote
+        # shell sets umask 077. Simulate production's private permissions and
+        # verify that public-directory chmod never widens this private path.
+        self.state.chmod(0o700)
         self.remote("remote_deploy.sh", "100-1")
         for path in ("public", "public/fonts", "fonts", "public/files", "public/images", "js"):
             folder = self.web / path

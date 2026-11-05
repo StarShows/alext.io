@@ -125,8 +125,8 @@ def run():
                         "(el) => getComputedStyle(el).color === 'rgb(25, 25, 25)'"
                     ), label + " project links no longer use default browser blue")
                     check(page.locator(".container").evaluate(
-                        "(el) => getComputedStyle(el).fontFamily.includes('Franklin Gothic Condensed')"
-                    ), label + " archive text uses locally hosted original typeface")
+                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
+                    ), label + " archive text matches original header type family")
                     check(page.evaluate(
                         "() => document.documentElement.scrollWidth <= window.innerWidth + 2"
                     ), label + " archive has no horizontal scroll overflow")

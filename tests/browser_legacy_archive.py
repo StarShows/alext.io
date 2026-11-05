@@ -73,6 +73,36 @@ def run():
                     check(page.locator(".container").evaluate(
                         "(el) => getComputedStyle(el).backgroundImage.includes('gradient')"
                     ), label + " historic CSS renders gradient")
+                    # A loaded CSS file is not enough. The archived HTML uses
+                    # selectors that the recompiled Sass stylesheet lacked.
+                    check(page.locator(".container .header").first.evaluate(
+                        """(el) => {
+                            const style = getComputedStyle(el);
+                            return style.backgroundColor === 'rgb(0, 0, 0)' &&
+                                style.borderTopWidth === '2px' &&
+                                style.fontFamily.includes('Century Gothic');
+                        }"""
+                    ), label + " historical boxed header and typography render")
+                    check(page.locator(".container .header.h2").first.evaluate(
+                        "(el) => getComputedStyle(el).fontSize === '20px'"
+                    ), label + " historical secondary heading font size")
+                    check(page.locator(".container .header.mobile_only").is_visible() == (label == "mobile"),
+                          label + " original responsive heading behavior")
+                    check(page.evaluate(
+                        """() => [...document.styleSheets].some(
+                            sheet => sheet.href && sheet.href.includes('/public/files/old.css')
+                        )"""
+                    ), label + " isolated historic CSS is used")
+                    fonts = page.evaluate(
+                        """async () => {
+                            const matches = await document.fonts.load(
+                                '18px "Franklin Gothic Condensed"'
+                            );
+                            return matches.length;
+                        }"""
+                    )
+                    check(fonts > 0, label + " original local WOFF font resolves")
+                    check(not failed, label + " all requested legacy assets return 200")
                     check(not failed, label + " no local assets fail: " +
                           "; ".join(failed[:3]))
                     page.screenshot(

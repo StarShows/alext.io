@@ -51,14 +51,7 @@
   font-size: 16px;
   line-height: 1.55;
 }
-.container .content .portfolio_item .button,
-.container .header {
-  font-family: "Franklin Gothic Condensed", "Arial Narrow", Arial, sans-serif;
-}
-.container .content .portfolio_item .button {
-  font-size: 21px;
-  text-align: center;
-}
+/* Existing Century Gothic heading and button typography stays untouched. */
 
 @media (max-width: 736px) {
   .container .container_inner {

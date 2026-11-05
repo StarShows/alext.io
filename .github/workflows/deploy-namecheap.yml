@@ -180,6 +180,27 @@ jobs:
           svg = (root / "favicon.svg").read_text(encoding="utf-8")
           assert "<svg" in svg and "AT monogram" in svg, "Invalid SVG favicon"
           PY
+      - name: Verify restored original portfolio and legacy assets over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/public/files/old.html?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-old.html"
+          for asset in public/css/styles.css js/scripts.js js/starBackground.js images/avitannenbaum.jpeg; do
+            curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/$asset?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-${asset##*/}"
+          done
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import sys
+          from pathlib import Path
+          root = Path(sys.argv[1])
+          html = (root / "legacy-old.html").read_text(encoding="utf-8")
+          assert "Alex T - Sr. Full Stack Software Engineer" in html, "Original website title missing"
+          assert '<base href="/">' in html, "Root asset base missing"
+          for asset in ("legacy-styles.css", "legacy-scripts.js", "legacy-starBackground.js"):
+              assert (root / asset).stat().st_size > 500, f"Empty original-site asset: {asset}"
+          portrait = (root / "legacy-avitannenbaum.jpeg").read_bytes()
+          assert portrait[:3] == b"\\xff\\xd8\\xff" and len(portrait) > 1000, "Invalid original portrait"
+          print("Historic archive, styling, script and portrait verified via HTTPS")
+          PY
       - name: Verify same-origin project previews over HTTPS
         shell: bash
         run: |

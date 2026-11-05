@@ -102,6 +102,28 @@ def run():
                         }"""
                     )
                     check(fonts > 0, label + " original local WOFF font resolves")
+                    banner = page.locator(".box_yellow")
+                    check(banner.count() == 1, label + " 2025 project banner exists")
+                    check(banner.evaluate(
+                        """el => {
+                          const s = getComputedStyle(el);
+                          return s.backgroundColor === 'rgb(255, 232, 31)' &&
+                              s.color === 'rgb(21, 16, 7)' &&
+                              s.fontSize === '19px' ||
+                            s.backgroundColor === 'rgb(255, 232, 31)' &&
+                              s.color === 'rgb(21, 16, 7)' &&
+                              s.fontSize === '17px';
+                        }"""
+                    ), label + " missing project banner color and type are restored")
+                    check(page.locator(".box_yellow .box_yellowa").first.evaluate(
+                        "(el) => getComputedStyle(el).color === 'rgb(25, 25, 25)'"
+                    ), label + " project links no longer use default browser blue")
+                    check(page.locator(".container").evaluate(
+                        "(el) => getComputedStyle(el).fontFamily.includes('Franklin Gothic Condensed')"
+                    ), label + " archive text uses locally hosted original typeface")
+                    check(page.evaluate(
+                        "() => document.documentElement.scrollWidth <= window.innerWidth + 2"
+                    ), label + " archive has no horizontal scroll overflow")
                     check(not failed, label + " all requested legacy assets return 200")
                     check(not failed, label + " no local assets fail: " +
                           "; ".join(failed[:3]))

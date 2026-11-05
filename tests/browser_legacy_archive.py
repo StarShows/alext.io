@@ -86,6 +86,12 @@ def run():
                     check(page.locator(".container .header.h2").first.evaluate(
                         "(el) => getComputedStyle(el).fontSize === '20px'"
                     ), label + " historical secondary heading font size")
+                    check(page.locator(".container .header").first.evaluate(
+                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
+                    ), label + " original heading font is not overwritten")
+                    check(page.locator(".content .portfolio_item .button").first.evaluate(
+                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
+                    ), label + " original button font is not overwritten")
                     check(page.locator(".container .header.mobile_only").is_visible() == (label == "mobile"),
                           label + " original responsive heading behavior")
                     check(page.evaluate(

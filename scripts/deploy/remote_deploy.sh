@@ -121,14 +121,18 @@ ready=1
 install_one() {
   local rel="$1" target="$web/$1" temp
   safe_path "$rel" || return 1
-  mkdir -p "$(dirname "$target")"
-  # Keep umask 077 for private staging, but make this one allowlisted public
-  # asset directory traversable by the static web server (mode 0755).
-  # This also repairs a mode-0700 folder left from a rolled-back release.
-  if [[ "$rel" == images/previews/* ]]; then
-    [[ -d "$web/images/previews" && ! -L "$web/images/previews" ]] || return 1
-    chmod 0755 -- "$web/images/previews"
-  fi
+  # Keep umask 077 for private staging, work and backups. Every directory
+  # containing allowlisted *public* assets must, however, be traversable by
+  # LiteSpeed/Apache. The previous one-off fix covered only images/previews.
+  # That left new font and other asset directories at 0700 after deployment.
+  local dir
+  dir="$(dirname -- "$target")"
+  mkdir -p -- "$dir"
+  while [[ "$dir" != "$web" ]]; do
+    [[ -d "$dir" && ! -L "$dir" ]] || return 1
+    chmod 0755 -- "$dir"
+    dir="$(dirname -- "$dir")"
+  done
   temp="$(mktemp "${target}.alext-tmp.XXXXXX")"
   cp -- "$stage/site/$rel" "$temp"
   chmod 0644 "$temp"

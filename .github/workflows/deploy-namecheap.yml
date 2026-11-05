@@ -185,9 +185,10 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/public/files/old.html?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-old.html"
-          for asset in public/css/styles.css js/scripts.js js/starBackground.js images/avitannenbaum.jpeg; do
+          for asset in public/files/old.css js/scripts.js js/starBackground.js images/avitannenbaum.jpeg; do
             curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/$asset?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-${asset##*/}"
           done
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/public/fonts/Franklin%20Gothic%20Condensed.woff?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-font.woff"
           python3 - "$RUNNER_TEMP" <<'PY'
           import sys
           from pathlib import Path
@@ -195,7 +196,13 @@ jobs:
           html = (root / "legacy-old.html").read_text(encoding="utf-8")
           assert "Alex T - Sr. Full Stack Software Engineer" in html, "Original website title missing"
           assert '<base href="/">' in html, "Root asset base missing"
-          for asset in ("legacy-styles.css", "legacy-scripts.js", "legacy-starBackground.js"):
+          assert "/public/files/old.css?v=legacy-20261104" in html, "Archived CSS not linked"
+          css = (root / "legacy-old.css").read_text(encoding="utf-8")
+          for rule in (".container .header {", ".container .header.h2 {", ".container .header.mobile_only {"):
+              assert rule in css, f"Missing original legacy style: {rule}"
+          font = (root / "legacy-font.woff").read_bytes()
+          assert font.startswith(bytes.fromhex("774f4646")) and len(font) > 1000, "Original WOFF font missing or invalid"
+          for asset in ("legacy-scripts.js", "legacy-starBackground.js"):
               assert (root / asset).stat().st_size > 500, f"Empty original-site asset: {asset}"
           portrait = (root / "legacy-avitannenbaum.jpeg").read_bytes()
           assert portrait.startswith(bytes.fromhex("ffd8ff")) and len(portrait) > 1000, "Invalid original portrait"

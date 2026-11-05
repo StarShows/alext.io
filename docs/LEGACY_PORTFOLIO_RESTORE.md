@@ -35,6 +35,30 @@ scripts.js also had assumptions about optional DOM elements, which could
 throw errors. Those are now guarded. No changes to the modern site's scripts
 or styles were necessary.
 
+## Font and stylesheet compatibility (follow-up)
+
+The previous archive restoration still looked wrong because it paired a later
+HTML revision (using .container .header, .container .header.h2 and
+.container .header.mobile_only) with older SCSS that did not define these
+selectors. Every deployment compiled that mismatched SCSS over the original
+CSS. The original gradient test passed without validating header typography.
+
+old.html now loads /public/files/old.css, a pinned historical stylesheet
+copied from the matching original compiled CSS. It does not rely on the Sass
+build, and its original header styles, type sizes, responsive rules and
+backgrounds are retained. Its font URL references the existing tracked
+/public/fonts/Franklin Gothic Condensed.woff file.
+
+The remote deployment now repairs 0700 permissions only on traversed public
+directory ancestors of allowlisted installed files, setting them to 0755.
+Private SSH staging and backup directories retain umask 077, and public
+asset files retain 0644. Tests verify no private directories are widened.
+
+Browser tests assert the original boxed headings, typography, responsive
+mobile-only heading, nonempty WOFF font load, and absence of failed assets.
+The HTTPS production smoke check now fetches the archived stylesheet and
+font and verifies selectors and font signature before release acceptance.
+
 ## Safety
 
 Both archive HTML and assets are part of the allowlisted, checksum-verified

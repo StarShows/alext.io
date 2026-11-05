@@ -40,13 +40,31 @@ class LegacyPortfolioTests(unittest.TestCase):
         self.assertIn("Thanks for visiting my site!", content)
         self.assertIn('id="sky"', content)
 
+    def test_archived_style_is_pinned_and_contains_historical_typography(self):
+        css_file = ROOT / "public/files/old.css"
+        self.assertTrue(css_file.is_file(), "Legacy stylesheet must be tracked")
+        self.assertTrue(is_deployable("public/files/old.css"))
+        html = ARCHIVE.read_text(encoding="utf-8")
+        self.assertIn('/public/files/old.css?v=legacy-20261104', html)
+        self.assertNotIn('<link rel="stylesheet" href="/public/css/styles.css">', html)
+        css = css_file.read_text(encoding="utf-8")
+        # These were absent from compiled 2023-era Sass despite the archive
+        # being a later HTML revision. The mismatch made text look unstyled.
+        for rule in (".container .header {", ".container .header.h2 {",
+                     ".container .header.mobile_only {",
+                     ".container .content .portfolio_item .button {"):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, css)
+        self.assertIn('url("/public/fonts/Franklin%20Gothic%20Condensed.woff")', css)
+        self.assertTrue((ROOT / "public/fonts/Franklin Gothic Condensed.woff").is_file())
+
     def test_original_assets_resolve_at_site_root(self):
         content = ARCHIVE.read_text(encoding="utf-8")
         doc = LegacyDocument()
         doc.feed(content)
         self.assertEqual(doc.base, "/")
         expected = (
-            "public/css/styles.css",
+            "public/files/old.css",
             "images/avitannenbaum.jpeg",
             "js/scripts.js",
             "js/starBackground.js",
@@ -55,7 +73,7 @@ class LegacyPortfolioTests(unittest.TestCase):
         resolved = [urljoin(base, asset) for asset in doc.resources]
         for path in expected:
             with self.subTest(path=path):
-                self.assertIn("https://alext.io/" + path, resolved)
+                self.assertIn("/" + path, [urlparse(url).path for url in resolved])
                 self.assertTrue((ROOT / path).is_file(), "Missing legacy asset: " + path)
         for url in resolved:
             if urlparse(url).hostname == "alext.io":

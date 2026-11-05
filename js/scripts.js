@@ -10,6 +10,7 @@ gtag("config", "UA-42339063-2");
 // Insert website name here
 const updateWebsiteName = () => {
   let websiteName = document.getElementById("Website_Name");
+  if (!websiteName) return; // Legacy archive omits this optional heading.
   websiteName.style.color = "#ffe81f";
   websiteName.innerHTML = `Welcome to ${window.location.hostname}!`;
 };
@@ -28,12 +29,12 @@ function navigateTo(url, NewPage) {
 
 function falcon_animation() {
   let falcon = document.getElementById('falcon');
+  if (!falcon) return; // Falcon decoration isn't present in every archived revision.
   let text = document.getElementById('block_grid');
 
   const scroll = window.addEventListener("scroll", (scroll) => {
 
     falcon.style.bottom = window.scrollY + 'px';
-å
   });
 }
 

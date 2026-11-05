@@ -29,20 +29,21 @@ class BuildStoryTests(unittest.TestCase):
         self.tree = DocumentOutline()
         self.tree.feed(PAGE)
 
-    def test_four_public_engineering_case_studies(self):
+    def test_five_public_engineering_case_studies(self):
         self.assertEqual(self.tree.ids["case-studies"]["tag"], "section")
-        for story in ("build-learn", "build-dinnerradar", "build-titan", "build-hoag"):
+        for story in ("build-learn", "build-dinnerradar", "build-realtor-studio", "build-titan", "build-hoag"):
             with self.subTest(story=story):
                 self.assertEqual(self.tree.ids[story]["tag"], "article")
                 self.assertEqual(self.tree.ids[story]["attrs"]["tabindex"], "-1")
                 self.assertIn("#" + story, self.tree.links)
-        self.assertEqual(PAGE.count('class="case-architecture"'), 4)
-        self.assertEqual(PAGE.count('class="case-flow-step"'), 17)
+        self.assertEqual(PAGE.count('class="case-architecture"'), 5)
+        self.assertEqual(PAGE.count('class="case-flow-step"'), 22)
         self.assertEqual(PAGE.count('class="case-flow-step case-flow-step--split"'), 1)
 
     def test_evidence_and_architecture_are_explained(self):
         learn = PAGE.split('id="build-learn"', 1)[1].split('id="build-dinnerradar"', 1)[0]
-        dinner = PAGE.split('id="build-dinnerradar"', 1)[1].split('id="build-titan"', 1)[0]
+        dinner = PAGE.split('id="build-dinnerradar"', 1)[1].split('id="build-realtor-studio"', 1)[0]
+        realtor = PAGE.split('id="build-realtor-studio"', 1)[1].split('id="build-titan"', 1)[0]
         titan = PAGE.split('id="build-titan"', 1)[1].split('id="build-hoag"', 1)[0]
         hoag = PAGE.split('id="build-hoag"', 1)[1].split('<!-- ===================== AI SECTION', 1)[0]
         for term in ("React", "SQLite", "Node.js", "OAuth", "exercise", "https://alext.io/learn/"):
@@ -56,6 +57,16 @@ class BuildStoryTests(unittest.TestCase):
         self.assertEqual(dinner.count('class="case-dinner-mode"'), 2)
         self.assertEqual(dinner.count('class="case-flow-step"'), 5)
         self.assertIn('href="https://dinnerradar.com/"', dinner)
+        for term in ("WordPress", "headless", "CMS", "plugins", "themes",
+                     "2008", "PHP", "SQL", "hooks", "API", "IDX",
+                     "MLS", "AI-assisted", "custom theme design"):
+            with self.subTest(term=term):
+                self.assertIn(term.casefold(), realtor.casefold())
+        self.assertTrue("more than eight custom WordPress plugins and themes" in realtor)
+        self.assertEqual(realtor.count('class="case-wp-era '), 2)
+        self.assertEqual(realtor.count('class="case-flow-step"'), 5)
+        self.assertIn('href="https://www.realtor-studio.com/"', realtor)
+        self.assertIn("Classic theme rendering and headless frontend delivery are alternatives", realtor)
         for term in ("Airtable", "MongoDB", "Snowflake", "ServiceNow", "Bedrock", "MCP", "DAG"):
             self.assertIn(term, titan)
         for term in ("architecture", "technical documentation", "cost analysis",
@@ -75,6 +86,7 @@ class BuildStoryTests(unittest.TestCase):
     def test_project_preview_and_search_routes_are_static(self):
         self.assertIn('snapshot:"learning-lab", caseId:"build-learn"', PAGE)
         self.assertIn('snapshot:"dinnerradar", caseId:"build-dinnerradar"', PAGE)
+        self.assertIn('snapshot:"realtor-studio", caseId:"build-realtor-studio"', PAGE)
         self.assertIn('href="#case-studies"', PAGE)
         self.assertIn('href="https://alext.io/learn/"', PAGE)
 

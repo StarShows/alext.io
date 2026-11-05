@@ -3,7 +3,7 @@
 .build-stories { padding-top:7rem; padding-bottom:7rem; }
 .build-stories .section-head { max-width:1070px; margin-bottom:36px; }
 .build-stories .section-title { max-width:1000px; }
-.case-jump-links { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin:0 0 30px; }
+.case-jump-links { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:13px; margin:0 0 30px; }
 .case-jump-links a {
   --case-hover:var(--cyan); position:relative; display:grid; gap:8px;
   padding:20px 22px 22px; border:1px solid rgba(255,255,255,.17);
@@ -12,8 +12,9 @@
   overflow:hidden; min-width:0;
 }
 .case-jump-links a:nth-child(2) { --case-hover:var(--gold); }
-.case-jump-links a:nth-child(3) { --case-hover:var(--pink); }
-.case-jump-links a:nth-child(4) { --case-hover:var(--mint); }
+.case-jump-links a:nth-child(3) { --case-hover:var(--violet); }
+.case-jump-links a:nth-child(4) { --case-hover:var(--pink); }
+.case-jump-links a:nth-child(5) { --case-hover:var(--mint); }
 .case-jump-links a::after {
   content:""; position:absolute; height:2px; bottom:0; left:24px; right:24px; opacity:.55;
   background:linear-gradient(90deg,var(--case-hover),transparent 90%); transform-origin:left;
@@ -41,6 +42,7 @@
   scroll-margin-top:135px;
 }
 .case-study--dinnerradar { --case-accent:var(--gold); --case-glow:rgba(255,228,138,.12); }
+.case-study--realtor-studio { --case-accent:var(--violet); --case-glow:rgba(165,140,255,.13); }
 .case-study--titan { --case-accent:var(--pink); --case-glow:rgba(255,139,212,.13); }
 .case-study--hoag { --case-accent:var(--mint); --case-glow:rgba(140,255,193,.1); }
 .case-study::before {
@@ -299,4 +301,44 @@
 @media(prefers-reduced-motion:reduce) {
   .case-dinner-mode { transition:none!important; }
   .case-dinner-mode:hover { transform:none!important; }
+}
+
+/* Realtor Studio: contrast hand-coded craft with modern AI-assisted iteration.
+   Lightweight backgrounds and transform-only hover work on mobile GPUs. */
+.case-wp-era-grid {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
+  margin:27px 0 0;
+}
+.case-wp-era {
+  position:relative; min-width:0; border:1px solid rgba(165,140,255,.26);
+  border-radius:17px; padding:22px 23px;
+  background:linear-gradient(135deg,rgba(165,140,255,.09),rgba(8,12,32,.56) 70%);
+  transition:border-color .25s,background .25s,transform .3s cubic-bezier(.16,1,.3,1);
+}
+.case-wp-era--modern {
+  border-color:rgba(97,243,255,.23);
+  background:linear-gradient(135deg,rgba(97,243,255,.085),rgba(8,12,32,.56) 70%);
+}
+.case-wp-era:hover { border-color:rgba(165,140,255,.62); transform:translateY(-3px); }
+.case-wp-era--modern:hover { border-color:rgba(97,243,255,.55); }
+.case-wp-era-label {
+  display:block; color:var(--violet); margin-bottom:12px;
+  font:800 11px "SFMono-Regular",Consolas,monospace; letter-spacing:.12em;
+}
+.case-wp-era--modern .case-wp-era-label { color:var(--cyan); }
+.case-wp-era strong {
+  display:block; color:#fbfcff; letter-spacing:-.03em;
+  line-height:1.25; font-size:clamp(18px,2vw,24px);
+}
+.case-wp-era p {
+  margin-top:11px; color:rgba(228,238,252,.78);
+  font-size:14px; line-height:1.7;
+}
+@media(max-width:650px) {
+  .case-wp-era-grid { grid-template-columns:minmax(0,1fr); gap:9px; margin-top:21px; }
+  .case-wp-era { padding:18px 19px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .case-wp-era { transition:none!important; }
+  .case-wp-era:hover { transform:none!important; }
 }

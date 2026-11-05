@@ -64,6 +64,11 @@ jobs:
         run: |
           set -euo pipefail
           "$RUNNER_TEMP/brand-venv/bin/python" tests/browser_smoke.py
+      - name: Verify original portfolio archive on desktop and mobile
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/brand-venv/bin/python" tests/browser_legacy_archive.py
       - name: Stress test recruiter search on desktop and mobile
         shell: bash
         run: |

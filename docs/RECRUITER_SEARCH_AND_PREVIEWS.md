@@ -130,3 +130,23 @@ surfaces, checks mobile blur fallbacks, and exercises paste-style input.
 
 This is a front-end robustness improvement. No new endpoint, telemetry,
 external service, permission, or private data is introduced.
+
+### Realtor Studio and WordPress engineering story
+
+The homepage includes a fifth long-form case study on the developer's
+WordPress experience, including the first paid custom theme/plugin work in
+2008, more than eight custom plugins and themes built across WordPress work,
+traditional PHP themes, and headless WordPress CMS implementations.
+
+The case study contrasts hand-coded, pre-AI design and development with
+present-day AI-assisted exploration without implying that earlier work was
+AI-generated. Its conceptual architecture explicitly presents traditional
+WordPress theme rendering and headless CMS API delivery as **alternatives**,
+not consecutive processing steps.
+
+The existing Realtor Studio card links to `#build-realtor-studio`. The
+local recruiter search automatically indexes the article's details on
+PHP, themes, WordPress hooks, headless CMS, APIs, design and integrations.
+Static content regressions and desktop/mobile browser smoke tests verify
+the story, deep link, search relevance, and responsive layout. No new
+screenshot target, API dependency or private client code is introduced.

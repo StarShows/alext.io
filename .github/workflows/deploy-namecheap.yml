@@ -198,7 +198,7 @@ jobs:
           for asset in ("legacy-styles.css", "legacy-scripts.js", "legacy-starBackground.js"):
               assert (root / asset).stat().st_size > 500, f"Empty original-site asset: {asset}"
           portrait = (root / "legacy-avitannenbaum.jpeg").read_bytes()
-          assert portrait[:3] == b"\\xff\\xd8\\xff" and len(portrait) > 1000, "Invalid original portrait"
+          assert portrait.startswith(bytes.fromhex("ffd8ff")) and len(portrait) > 1000, "Invalid original portrait"
           print("Historic archive, styling, script and portrait verified via HTTPS")
           PY
       - name: Verify same-origin project previews over HTTPS

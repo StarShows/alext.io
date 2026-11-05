@@ -23,6 +23,12 @@ js/scripts.js, and js/starBackground.js. Under /public/files/old.html
 these resolve to /public/files/images/ and /public/files/js/, which
 do not match the tracked static assets at the repository root.
 
+A second issue was found by the browser test: the original gradient
+was present in the checked-in public/css/styles.css but commented out in
+scss/styles.scss. Because CI always compiles SCSS to CSS, every new release
+silently erased the original gradient. The source SCSS now explicitly
+retains the original 148-degree red-to-blue background.
+
 One HTML base href="/" makes those paths resolve correctly while keeping
 the historic design, copy, CSS and animation scripts intact. The legacy
 scripts.js also had assumptions about optional DOM elements, which could

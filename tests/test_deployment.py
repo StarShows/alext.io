@@ -188,6 +188,32 @@ class DeploymentTests(unittest.TestCase):
         self.remote("remote_deploy.sh", "100-1")
         self.assertEqual(stat.S_IMODE(folder.stat().st_mode), 0o755)
 
+    def test_all_public_asset_parent_directories_remain_traversable(self):
+        # New directories made with umask 077 have mode 0700. These are
+        # legitimate public document-root ancestors, including served fonts.
+        import stat
+        write(self.repo, "fonts/Franklin Gothic Condensed.woff", b"wOFFtest")
+        write(self.repo, "public/fonts/Franklin Gothic Condensed.woff", b"wOFFtest")
+        write(self.repo, "public/files/old.css", b".header { color: #fff; }")
+        subprocess.run(["git", "add", "-A"], cwd=self.repo, check=True)
+        private_dir = self.home / "unrelated-private"
+        private_dir.mkdir(mode=0o700)
+        for path in ("public", "public/fonts", "fonts", "public/files", "public/images"):
+            folder = self.web / path
+            folder.mkdir(parents=True, exist_ok=True)
+            folder.chmod(0o700)
+        self.stage()
+        self.remote("remote_deploy.sh", "100-1")
+        for path in ("public", "public/fonts", "fonts", "public/files", "public/images", "js"):
+            folder = self.web / path
+            with self.subTest(folder=path):
+                self.assertEqual(stat.S_IMODE(folder.stat().st_mode), 0o755)
+        self.assertEqual(stat.S_IMODE(private_dir.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(self.state.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((self.web / "public/files/old.css").stat().st_mode), 0o644)
+        self.remote("remote_rollback.sh", "100-1")
+        self.assertEqual(stat.S_IMODE(private_dir.stat().st_mode), 0o700)
+
     def test_missing_preview_images_fail_closed(self):
         write(self.repo, "index.html",
               b'<html><img src="/images/previews/dinnerradar.webp"></html>')

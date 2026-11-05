@@ -55,14 +55,23 @@ def run():
                 check(page.locator(".nav-links a:visible").count() >= 3,
                       "desktop keeps primary navigation accessible")
                 check(page.locator(".portal-iframe[src]").count() == 0, "third-party iframes are opt-in")
-                check(page.locator("#case-studies .case-study").count() == 4, "four fully readable build stories")
-                check(page.locator("#case-studies .case-flow-step").count() == 18, "architectural flow for all four projects")
+                check(page.locator("#case-studies .case-study").count() == 5, "five fully readable build stories")
+                check(page.locator("#case-studies .case-flow-step").count() == 23, "architectural flow for all five projects")
                 check(page.locator("#build-learn a[href='https://alext.io/learn/']").count() >= 1,
                       "live Learning Lab linked from its case study")
                 check(page.locator("#build-dinnerradar .case-dinner-mode").count() == 2,
                       "DinnerRadar explains two separate product journeys")
                 check(page.locator("#build-dinnerradar .case-flow-step").count() == 5,
                       "DinnerRadar architecture explains five major components")
+                check(page.locator("#build-realtor-studio .case-wp-era").count() == 2,
+                      "Realtor Studio contrasts pre-AI engineering and AI-enhanced workflows")
+                check(page.locator("#build-realtor-studio .case-flow-step").count() == 5,
+                      "Realtor Studio documents classic and headless WordPress architecture")
+                check(page.locator("#build-realtor-studio").inner_text().find("more than eight custom WordPress plugins and themes") >= 0,
+                      "Realtor Studio demonstrates eight-plus custom plugin/theme builds")
+                check(page.locator("#portalGrid .portal-card").filter(
+                    has_text="Realtor Studio").locator('a[href="#build-realtor-studio"]').count() == 1,
+                      "Realtor Studio preview links to its engineering story")
                 check(page.locator("#portalGrid .portal-card").first.locator(
                     'a[href="#build-dinnerradar"]').count() == 1,
                       "DinnerRadar public card links to full engineering story")
@@ -128,6 +137,13 @@ def run():
                 }""")
                 check("One question. Two ways" in page.locator(".skill-search-result").first.inner_text(),
                       "SSE alias finds DinnerRadar recipe progress architecture")
+                page.locator("#skillSearchInput").fill("headless WordPress")
+                page.wait_for_function("""() => {
+                    const first = document.querySelector('#skillSearchResults .skill-search-result');
+                    return first && first.textContent.includes('From hand-coded themes');
+                }""")
+                check("From hand-coded themes" in page.locator(".skill-search-result").first.inner_text(),
+                      "headless WordPress query ranks Realtor Studio's architecture first")
                 page.locator("#skillSearchInput").fill("FHIR")
                 page.wait_for_function("""() => {
                     const first = document.querySelector('#skillSearchResults .skill-search-result');
@@ -157,6 +173,8 @@ def run():
                     path=str(ROOT / "tests/screenshots/build-story-titan-full.png"))
                 page.locator("#build-dinnerradar").screenshot(
                     path=str(ROOT / "tests/screenshots/build-story-dinnerradar-full.png"))
+                page.locator("#build-realtor-studio").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-realtor-studio-desktop.png"))
                 check(page.locator("#build-dinnerradar").evaluate(
                     "(el) => el.scrollWidth <= el.clientWidth + 2"
                 ), "DinnerRadar long-form card fits desktop width")
@@ -206,6 +224,12 @@ def run():
                       "two DinnerRadar user journeys remain readable on mobile")
                 phone.locator("#build-dinnerradar").screenshot(
                     path=str(ROOT / "tests/screenshots/build-story-dinnerradar-mobile.png"))
+                phone.locator("#build-realtor-studio").scroll_into_view_if_needed()
+                check(phone.locator("#build-realtor-studio").evaluate(
+                    "(el) => Number(getComputedStyle(el).opacity) > .99 && el.scrollWidth <= el.clientWidth + 2"
+                ), "Realtor Studio story stays visible without horizontal overflow")
+                phone.locator("#build-realtor-studio").screenshot(
+                    path=str(ROOT / "tests/screenshots/build-story-realtor-studio-mobile.png"))
                 phone.locator("#build-titan").scroll_into_view_if_needed()
                 check(phone.locator("#build-titan .case-practice").count() == 4,
                       "Titan architecture, cost, quality and Agile delivery practices render on mobile")

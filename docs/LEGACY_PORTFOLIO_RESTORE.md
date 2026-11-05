@@ -73,3 +73,21 @@ before accepting a release.
 
 The original site and its historical copy intentionally remain separate from
 the modern portfolio and its recruiter search.
+
+## 2025 HTML and older compiled CSS mismatch
+
+Git history shows a later, December 2025 HTML revision introduced the
+box_yellow / box_yellowa announcement markup, while the only tracked
+compiled CSS dated November 2023 still defines box_green instead.
+This explains an unstyled status banner and default blue links even
+after correcting the historical heading styles and font directory access.
+
+A separate /public/files/old-compat.css loads AFTER pinned old.css,
+reconstructing only missing 2025 selectors, readable type for the
+previously unstyled copy, and narrower viewport padding. The original
+historical stylesheet remains unchanged. This is a documented visual
+reconstruction, not an unverified claim of pixel-perfect October 2026 CSS.
+
+Browser QA asserts banner colors and typography, link contrast, font
+family and no horizontal overflow on both desktop and mobile. The
+production smoke check verifies the separate compatibility stylesheet.

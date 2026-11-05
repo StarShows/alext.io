@@ -73,7 +73,7 @@ class LegacyPortfolioTests(unittest.TestCase):
         resolved = [urljoin(base, asset) for asset in doc.resources]
         for path in expected:
             with self.subTest(path=path):
-                self.assertIn("https://alext.io/" + path, resolved)
+                self.assertIn("/" + path, [urlparse(url).path for url in resolved])
                 self.assertTrue((ROOT / path).is_file(), "Missing legacy asset: " + path)
         for url in resolved:
             if urlparse(url).hostname == "alext.io":

@@ -1,0 +1,103 @@
+name: AI model preparation checks
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ai-benchmark-model-preflight.yml'
+      - 'ai/scripts/prepare-benchmark-model.mjs'
+      - 'ai/scripts/benchmark-isolated.mjs'
+      - 'ai/test/benchmark-model.test.mjs'
+      - 'ai/test/benchmark-manifest.test.mjs'
+      - 'ai/test/benchmark-isolated.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ai-model-preparation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  prepare-checks:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24.20.0'
+      - name: Test preparation controls and preserve formatter previews
+        working-directory: ai
+        run: |
+          mkdir -p reports/model-preparation
+          npm ci --ignore-scripts --no-fund
+          node --test test/benchmark-model.test.mjs test/benchmark-manifest.test.mjs test/benchmark-isolated.test.mjs
+          ./node_modules/.bin/prettier scripts/prepare-benchmark-model.mjs > reports/model-preparation/prepare-benchmark-model.mjs
+          ./node_modules/.bin/prettier test/benchmark-model.test.mjs > reports/model-preparation/benchmark-model.test.mjs
+          ./node_modules/.bin/prettier docs/benchmark-model-preparation.md > reports/model-preparation/benchmark-model-preparation.md
+          tar -czf reports/model-preparation/formatter.tgz -C node_modules prettier
+      - name: Read official model metadata only
+        working-directory: ai
+        run: |
+          node scripts/prepare-benchmark-model.mjs --metadata-only > reports/model-preparation/model-metadata.json
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { createHash } from 'node:crypto';
+          import assert from 'node:assert/strict';
+          import { execFileSync } from 'node:child_process';
+          const m = JSON.parse(readFileSync('reports/model-preparation/model-metadata.json'));
+          const ref = m.manifest.config.digest;
+          assert(/^sha256:[a-f0-9]{64}$/.test(ref));
+          assert(m.manifest.config.size < 16384);
+          const raw = execFileSync('curl', ['--fail','--silent','--show-error','--location','--proto','=https','--proto-redir','=https','--max-time','30','--max-filesize','16384','https://registry.ollama.ai/v2/library/qwen3.5/blobs/' + ref], {maxBuffer:16384});
+          assert.equal(raw.length, m.manifest.config.size);
+          assert.equal(createHash('sha256').update(raw).digest('hex'), ref.slice(7));
+          writeFileSync('reports/model-preparation/model-config.json', raw);
+          JS
+      - name: Verify the exact ARM64 image can start with offline read-only model storage
+        working-directory: ai
+        run: |
+          set -euo pipefail
+          docker pull --platform linux/arm64 ollama/ollama@sha256:9413eb2a9419819146397b9393c7a645d44753317c1b0e3a76ab45671adc2d7c
+          node --input-type=module <<'JS' | tee reports/model-preparation/arm64-smoke.txt
+          import { prepare, containerArgs, verifyContainer } from './scripts/prepare-benchmark-model.mjs';
+          import { execFileSync, spawnSync } from 'node:child_process';
+          import { randomUUID } from 'node:crypto';
+          const run = (args) => execFileSync('docker', args, {encoding:'utf8',timeout:10000,stdio:['ignore','pipe','pipe']}).trim();
+          try { await prepare({smoke:true}); }
+          catch (e) {
+            console.error(JSON.stringify({name:e.name,code:e.code,status:e.status,message:e.message.split('\n')[0],stderr:e.stderr?.toString().slice(0,2000)},null,2));
+            process.exitCode=1;
+            for (const readOnlyModels of [false,true]) {
+              const options={readOnlyModels};
+              const args=containerArgs('alext-bench-'+randomUUID(),'none',options);
+              args[args.length-1]='umask 077; exec /bin/ollama serve';
+              const id=run(args);
+              try {
+                verifyContainer(JSON.parse(run(['inspect',id]))[0],'none',options);
+                run(['start',id]);
+                await new Promise(r=>setTimeout(r,2000));
+                const state=JSON.parse(run(['inspect',id]))[0].State;
+                console.error(JSON.stringify({readOnlyModels,running:state.Running,exitCode:state.ExitCode,oom:state.OOMKilled}));
+                try { console.error('Local list: '+run(['exec',id,'/bin/ollama','list'])); }
+                catch (err) { console.error('Local list failure: '+err.stderr?.toString().slice(0,1000)); }
+                const log=spawnSync('docker',['logs',id],{encoding:'utf8',timeout:10000,maxBuffer:65536});
+                console.error(((log.stdout??'')+'\n'+(log.stderr??'')).split('\n').filter(l=>/error|failed|permission|read.only|mkdir/i.test(l)&&!l.includes('server config')).join('\n').slice(0,3000));
+              } finally { run(['rm','--force',id]); }
+            }
+          }
+          JS
+          git rev-parse HEAD > reports/model-preparation/tested-source.txt
+          git diff --exit-code
+      - name: Verify the offline benchmark HTTP relay without model inference
+        working-directory: ai
+        run: |
+          set -euo pipefail
+          node --max-old-space-size=128 scripts/benchmark-isolated.mjs --smoke | tee reports/model-preparation/offline-http-smoke.txt
+          git diff --exit-code
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ai-model-preparation-evidence
+          path: ai/reports/model-preparation/
+          retention-days: 7

@@ -78,9 +78,15 @@ def run():
                     ), label + " historic portrait resolves and renders")
                     check(page.locator("#sky .star").count() == 100,
                           label + " 100-star animation initializes")
-                    check(page.locator(".container").evaluate(
-                        "(el) => getComputedStyle(el).backgroundImage.includes('gradient')"
-                    ), label + " historic CSS renders gradient")
+                    # The inline archive deliberately paints the gradient on
+                    # the sky wrapper so the transparent content doesn't cover
+                    # its 100 white stars.
+                    check(page.locator("#sky").evaluate(
+                        "(el) => getComputedStyle(el).backgroundImage.includes('linear-gradient')"
+                    ), label + " historic gradient renders on the sky layer")
+                    check(page.locator("#sky .container").evaluate(
+                        "(el) => getComputedStyle(el).backgroundColor === 'rgba(0, 0, 0, 0)'"
+                    ), label + " content stays transparent above the stars")
                     # A loaded CSS file is not enough. The archived HTML uses
                     # selectors that the recompiled Sass stylesheet lacked.
                     check(page.locator(".container .header").first.evaluate(

@@ -44,7 +44,15 @@ def run():
                         has_touch=label == "mobile",
                     )
                     context.route(
-                        "https://www.googletagmanager.com/**",
+                        "https://alext.io/public/files/images/avitannenbaum.jpeg",
+                        lambda route: route.fulfill(
+                            status=200,
+                            content_type="image/jpeg",
+                            path=str(ROOT / "images/avitannenbaum.jpeg"),
+                        ),
+                    )
+                    context.route(
+                        "https://raw.githubusercontent.com/StarShows/avitannenbaum.com/**",
                         lambda route: route.abort(),
                     )
                     errors = []
@@ -94,39 +102,20 @@ def run():
                     ), label + " original button font is not overwritten")
                     check(page.locator(".container .header.mobile_only").is_visible() == (label == "mobile"),
                           label + " original responsive heading behavior")
-                    check(page.evaluate(
-                        """() => [...document.styleSheets].some(
-                            sheet => sheet.href && sheet.href.includes('/public/files/old.css')
-                        )"""
-                    ), label + " isolated historic CSS is used")
-                    fonts = page.evaluate(
-                        """async () => {
-                            const matches = await document.fonts.load(
-                                '18px "Franklin Gothic Condensed"'
-                            );
-                            return matches.length;
-                        }"""
-                    )
-                    check(fonts > 0, label + " original local WOFF font resolves")
+                    check(page.locator("style").count() == 1,
+                          label + " archive CSS is embedded inline")
+                    check(page.locator("script[src]").count() == 0,
+                          label + " archive JavaScript is embedded inline")
                     banner = page.locator(".box_yellow")
                     check(banner.count() == 1, label + " 2025 project banner exists")
                     check(banner.evaluate(
-                        """el => {
-                          const s = getComputedStyle(el);
-                          return s.backgroundColor === 'rgb(255, 232, 31)' &&
-                              s.color === 'rgb(21, 16, 7)' &&
-                              s.fontSize === '19px' ||
-                            s.backgroundColor === 'rgb(255, 232, 31)' &&
-                              s.color === 'rgb(21, 16, 7)' &&
-                              s.fontSize === '17px';
-                        }"""
-                    ), label + " missing project banner color and type are restored")
+                        "(el) => getComputedStyle(el).backgroundColor === 'rgb(255, 255, 0)'"
+                    ), label + " original inline yellow banner renders")
                     check(page.locator(".box_yellow .box_yellowa").first.evaluate(
-                        "(el) => getComputedStyle(el).color === 'rgb(25, 25, 25)'"
-                    ), label + " project links no longer use default browser blue")
-                    check(page.locator(".container").evaluate(
-                        "(el) => getComputedStyle(el).fontFamily.includes('Century Gothic')"
-                    ), label + " archive text matches original header type family")
+                        "(el) => getComputedStyle(el).color === 'rgb(255, 0, 0)'"
+                    ), label + " original inline banner link color renders")
+                    check(page.locator(".container .header").first.is_visible(),
+                          label + " original headers render")
                     check(page.evaluate(
                         "() => document.documentElement.scrollWidth <= window.innerWidth + 2"
                     ), label + " archive has no horizontal scroll overflow")

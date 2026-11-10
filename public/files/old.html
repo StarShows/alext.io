@@ -1,136 +1,527 @@
-
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<html lang="en">
 <head>
-    <!-- This pre-redesign portfolio is served in a subfolder; resolve its original relative assets from the site root. -->
-    <base href="/">
-    <!-- Google Tag Manager -->
-    <script>(function (w, d, s, l, i) {
-            w[l] = w[l] || []; w[l].push({
-                'gtm.start':
-                    new Date().getTime(), event: 'gtm.js'
-            }); var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-WV2S7TG');</script>
-    <!-- End Google Tag Manager -->
-    <meta charset="utf-8">
-    <title>Alex T - Sr. Full Stack Software Engineer</title>
-    <meta name="description" content="Alex Tannenbaum portfolio site">
-    <meta name="author" content="Alex Tannenbaum">
-    <link rel="stylesheet" href="/public/files/old.css?v=legacy-20261104">
-    <link rel="stylesheet" href="/public/files/old-compat.css?v=legacy-20261104">
-</head>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Original GTM ID: GTM-WV2S7TG. Disabled in standalone archive. -->
+<meta charset="utf-8"/>
+<title>Alex T - Sr. Full Stack Software Engineer</title>
+<meta content="Alex Tannenbaum portfolio site" name="description"/>
+<meta content="Alex Tannenbaum" name="author"/>
 
+<style>/* === https://www.alext.io/public/css/styles.css === */
+body {
+  margin: 0;
+  background-color: black;
+  line-height: 1.4;
+  cursor: default;
+}
+
+/* Historical Franklin Gothic font not needed; original visible font stack remains intact. */
+
+a.href {
+  color: #ffe81f;
+}
+a.href:hover {
+  color: black;
+}
+
+.box_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s;
+}
+.box_container:hover {
+  transform: scale(1.1);
+}
+
+.box_green {
+  background-color: green;
+  padding: 15px 24px;
+  font-size: 24px;
+  margin: 24px 0px;
+  text-align: center;
+  max-width: max-content;
+  border-radius: 4px;
+}
+.box_greena {
+  cursor: pointer;
+}
+.box_yellow {
+  background-color: yellow;
+  padding: 15px 24px;
+  font-size: 24px;
+  margin: 24px 0px;
+  text-align: center;
+  max-width: max-content;
+  border-radius: 4px;
+  color: red;
+}
+.box_yellowa {
+  cursor: pointer;
+color: red;
+
+}
+
+
+#falcon {
+  position: absolute;
+  bottom: 10px;
+  z-index: 1;
+  right: 100px;
+  height: 100px; }
+
+.click {
+  cursor: pointer;
+}
+
+section.sky {
+  position: fixed;
+}
+
+.avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px; }
+  .avatar_image {
+    transition: all 0.2s ease-in-out;
+    height: auto;
+    width: auto;
+    max-width: 250px;
+    padding: 18px;
+    border-radius: 50%;
+    border: solid 6px #ffe81f;
+    box-shadow: 000000 0px 0px 27px 3px;
+    color: #000000; }
+    .avatar_image:hover {
+      transform: scale(1.1); }
+
+.left_body_area {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button {
+  cursor: pointer;
+}
+
+@keyframes curtain {
+  0% {
+    display: block;
+    opacity: 1;
+  }
+  99% {
+    opacity: 0;
+  }
+  100% {
+    display: none;
+  }
+}
+.star {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background-color: white;
+}
+
+.link {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #ffe81f;
+}
+
+
+.container {
+  transform-origin: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  position: absolute;
+  background: rgb(153, 0, 0);
+  background: -moz-linear-gradient(148deg, rgb(153, 0, 0) 0%, rgb(17, 16, 0) 50%, rgb(0, 35, 149) 100%);
+  background: -webkit-linear-gradient(148deg, rgb(153, 0, 0) 0%, rgb(17, 16, 0) 50%, rgb(0, 35, 149) 100%);
+  background: linear-gradient(148deg, rgb(153, 0, 0) 0%, rgb(17, 16, 0) 50%, rgb(0, 35, 149) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#990000",endColorstr="#002395",GradientType=1);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-color: #000000;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  color: rgba(255, 232, 31, 0.8) !important;
+  width: 100%;
+  margin: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.container .intro {
+  position: absolute;
+  display: flex;
+  z-index: 1;
+  animation: intro 8s ease-out;
+  color: #ffe81f !important;
+  opacity: 0;
+  transform: scale(0.01);
+  max-height: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  border: solid 2px rgba(255, 232, 31, 0.28);
+  padding: 10px;
+  width: 100%;
+  justify-content: center;
+  font-weight: 600;
+  line-height: 1.6;
+  font-size: 50px;
+  font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif;
+  text-align: center;
+  color: rgba(255, 232, 31, 0.8);
+  margin-bottom: 32px;
+}
+.container .intro:hover {
+  color: #000000;
+}
+
+@keyframes intro {
+  0% {
+    opacity: 0;
+    top: 500px;
+    transform: rotateX(20deg) translateZ(100px) scale(3);
+  }
+  5% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+    transform: rotateX(20deg) translateZ(-2500px) scale(2.5);
+  }
+  100% {
+    opacity: 0;
+    top: 0px;
+    transform: rotateX(20deg) translateZ(-2500px) scale(1);
+  }
+}
+.container_inner {
+  border-radius: 4px;
+  padding: 23px;
+  margin: 25px;
+  max-width: 950px;
+}
+.container_inner .footer .paragraph_footer .link span {
+  color: #ffe81f;
+}
+.container_inner .footer .hint {
+  font-size: 12px;
+}
+.container_inner .avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+.container_inner .avatar_image {
+  transition: all 0.2s ease-in-out;
+  height: auto;
+  width: auto;
+  max-width: 250px;
+  padding: 18px;
+  border-radius: 50%;
+  border: solid 6px #ffe81f;
+  box-shadow: 0 0px 0px 27px 3px;
+  color: #000000;
+}
+.container_inner .avatar_image:hover {
+  transform: scale(1.1);
+}
+.container .header {
+  transition: all 0.2s ease-in-out;
+  background-color: #000;
+  border-radius: 4px;
+  border: solid 2px rgba(255, 232, 31, 0.28);
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+  color: rgba(255, 232, 31, 0.8);
+  margin-bottom: 32px;
+}
+.container .header.mobile_only {
+  display: none;
+}
+.container .header.click {
+  cursor: pointer;
+}
+.container .header.click:hover {
+  color: #000;
+}
+.container .header.h2 {
+  font-size: 20px;
+  font-weight: 300;
+}
+.container .content .portfolio_item .button {
+  width: auto;
+  font-weight: 600;
+  font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif;
+  line-height: 1.6;
+  padding: 20px;
+  background-color: rgba(153, 0, 0, 0.6);
+  transition: background-color 0.3s;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50px;
+  font-size: 20px;
+}
+.container .content .portfolio_item .button:hover {
+  background-color: rgba(226, 36, 58, 0.8);
+}
+.container .content .portfolio_item .paragraph .link {
+  color: rgba(255, 255, 255, 0.788);
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s, text-decoration 0.3s;
+}
+.container .content .portfolio_item .paragraph .link:hover {
+  text-decoration: none;
+  color: darkgray;
+}
+.container .content .portfolio_item .paragraph .link::before {
+  background-image: none;
+  height: 30px;
+  width: 30px;
+  cursor: pointer;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+@media screen and (max-width: 736px) {
+  .container_inner .header.mobile_only {
+    display: flex;
+  }
+}
+
+/*# sourceMappingURL=styles.css.map */
+
+
+
+/* Restored original white 1px starfield, visible above the gradient. */
+html, body { min-height: 100%; }
+#sky.board {
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  background: #090909 linear-gradient(148deg, rgb(153, 0, 0) 0%, rgb(17, 16, 0) 50%, rgb(0, 35, 149) 100%) fixed;
+}
+#sky > section.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#sky > section.sky .star {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: white;
+  pointer-events: none;
+}
+#sky > .layer2 { position: relative; z-index: 1; }
+#sky section.container {
+  position: relative;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: transparent;
+  background-color: transparent;
+  filter: none;
+}
+#sky section.container > .container_inner { width: min(950px, calc(100% - 36px)); box-sizing: border-box; }
+#sky section.container .header, #sky .box_yellow { position: relative; }
+@media (max-width: 736px) {
+  #sky section.container > .container_inner { width: calc(100% - 20px); padding: 12px; margin: 10px; }
+  #sky .container .header { overflow-wrap: anywhere; }
+  #sky .container .content .portfolio_item .button { font-size: 16px; padding: 14px; }
+  #sky .box_yellow { font-size: 18px; }
+}
+
+/* Maintain the circular portrait even if the original file has a different aspect ratio. */
+#profile-photo {
+  display: block;
+  width: min(250px, 55vw);
+  height: min(250px, 55vw);
+  max-width: 250px;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: center 36%;
+  box-sizing: content-box;
+  border-radius: 50%;
+}
+</style></head>
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WV2S7TG" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-    <div id="sky" class="board">
 
-        <div class="layer2">
-            <div>
-                <section class="container">
-                    <!-- Hi there, fellow developer. thanks for inspecting my site. I just wanted to point out in case you did not yet notice, I take great pride in making sure my code is clean, accessible, mobile-friendly, cross-browser tested and pixel perfected. take some time, inspect the structure of this site. and have fun. I'm currently open to discussing projects. so please shoot me an email if you're looking for a web developer. starshows@gmail.com -->
-                    <section class="container_inner">
-                        <!-- <section class="intro">
+<div class="board" id="sky">
+<div class="layer2">
+<div>
+<section class="container">
+<!-- Hi there, fellow developer. thanks for inspecting my site. I just wanted to point out in case you did not yet notice, I take great pride in making sure my code is clean, accessible, mobile-friendly, cross-browser tested and pixel perfected. take some time, inspect the structure of this site. and have fun. I'm currently open to discussing projects. so please shoot me an email if you're looking for a web developer. starshows@gmail.com -->
+<section class="container_inner">
+<!-- <section class="intro">
                             <h1>A long time ago, in a galaxy far,<br> far away....</h1>
                         </section> -->
-                        <section class="avatar">
-                            <a href="https://www.linkedin.com/in/alexandertannenbaum/" target="_blank" class="link"
-                                tabindex="0" title="Click here to go to Alex Tannenbaum's Linkedin profile"
-                                accesskey="l">
-                                <!--<video class="avatar_image video" width="100%" loop="true" autoplay="true" muted="true"-->
-                                <!--    poster="images/avitannenbaum.jpeg">-->
-                                <!--    <source src="images/1.mp4" type="video/mp4">-->
-                                <!--    Your browser doesn't support HTML5 video tag.-->
-                                <!--</video>-->
-                                 <img class="avatar_image" src="images/avitannenbaum.jpeg" alt="Alex Tannenbaum Profile Image"> 
-                            </a>
-                        </section>
-                        <div class="box_container">
-                            <div class="box_yellow"> Currently busy with the following projects: <a href="https://thewaltdisneycompany.com/" target="_blank" class="box_yellowa"> Working as Senior Solutions Engineer (Full Stack Developer + Data Architecture) at The Walt Disney Company </a>, <a href="https://www.Realtor-Studio.com" target="_blank" class="box_yellowa"> Running a web design agency for realtors in SoCal</a> and <a href="https://www.JustGetCreamed.com" target="_blank" class="box_yellowa"> CEO of Creamed LLC - The cleanest SPF 50 Moisturized on the market!</a>  Hit me up I may be availble to consult on your project. Feel free to inquire within! - <a
-                                    href="mailto:alex@alext.io?subject=Im%20an%20employer%20looking%20for%20a%20software%20engineer.%20lets%20talk!&body=Hi%20my%20name%20is%20%5BPut%20your%20name%20here%20%3A-)%5D%0D%0A%0D%0AI%20would%20love%20to%20hop%20on%20a%20call%20this%20week%20and%20discuss%20how%20we%20can%20work%20together%20on%20an%20awesome%20project.%0D%0A%0D%0AWarm%20regards%2C%0D%0A%5BAgain%20put%20in%20your%20name%20here%5D%0D%0A%5Bput%20in%20your%20phone%20number%5D%0D%0A%0D%0A%5BBonus%20-%20Put%20your%20Calendly%20link%20here%5D"
-                                    class="box_yellowa" title="Click here to hire me">Click here to send me an email!</a> </div>
-                        </div>
-                        <div class="header"> &#128075 &nbsp;Hello! I'm Alex Tannenbaum. Im a Senior Full Stack Software
+<section class="avatar">
+<a accesskey="l" class="link" href="https://www.linkedin.com/in/alexandertannenbaum/" tabindex="0" target="_blank" title="Click here to go to Alex Tannenbaum's Linkedin profile">
+<!--<video class="avatar_image video" width="100%" loop="true" autoplay="true" muted="true"-->
+<!--    poster="images/avitannenbaum.jpeg">-->
+<!--    <source src="images/1.mp4" type="video/mp4">-->
+<!--    Your browser doesn't support HTML5 video tag.-->
+<!--</video>-->
+<img id="profile-photo" class="avatar_image"
+     alt="Portrait of Alex Tannenbaum"
+     src="https://alext.io/public/files/images/avitannenbaum.jpeg"
+     width="250" height="250" loading="eager" decoding="async" fetchpriority="high"
+     onerror="if (!this.dataset.fallbackAttempted) { this.dataset.fallbackAttempted = 'true'; this.src = 'https://raw.githubusercontent.com/StarShows/avitannenbaum.com/main/old_web_version/web/images/avitannenbaum.jpeg'; } else { this.alt = 'Alex Tannenbaum (profile image temporarily unavailable)'; }"/>
+</a>
+</section>
+<div class="box_container">
+<div class="box_yellow"> Currently busy with the following projects: <a class="box_yellowa" href="https://thewaltdisneycompany.com/" target="_blank"> Working as Senior Solutions Engineer (Full Stack Developer + Data Architecture) at The Walt Disney Company </a>, <a class="box_yellowa" href="https://www.Realtor-Studio.com" target="_blank"> Running a web design agency for realtors in SoCal</a> and <a class="box_yellowa" href="https://www.JustGetCreamed.com" target="_blank"> CEO of Creamed LLC - The cleanest SPF 50 Moisturized on the market!</a>  Hit me up I may be availble to consult on your project. Feel free to inquire within! - <a class="box_yellowa" href="mailto:alex@alext.io?subject=Im%20an%20employer%20looking%20for%20a%20software%20engineer.%20lets%20talk!&amp;body=Hi%20my%20name%20is%20%5BPut%20your%20name%20here%20%3A-)%5D%0D%0A%0D%0AI%20would%20love%20to%20hop%20on%20a%20call%20this%20week%20and%20discuss%20how%20we%20can%20work%20together%20on%20an%20awesome%20project.%0D%0A%0D%0AWarm%20regards%2C%0D%0A%5BAgain%20put%20in%20your%20name%20here%5D%0D%0A%5Bput%20in%20your%20phone%20number%5D%0D%0A%0D%0A%5BBonus%20-%20Put%20your%20Calendly%20link%20here%5D" title="Click here to hire me">Click here to send me an email!</a> </div>
+</div>
+<div class="header"> 👋  Hello! I'm Alex Tannenbaum. Im a Senior Full Stack Software
                             Engineer, with lots of frontend experience.</div>
-                        <h1 class="header"> I love coding and finding solutions to make a product better. </h1>
-                        <h1 class="header mobile_only">Thanks for visiting my site on a mobile device :-). Love to have
+<h1 class="header"> I love coding and finding solutions to make a product better. </h1>
+<h1 class="header mobile_only">Thanks for visiting my site on a mobile device :-). Love to have
                             a Mobile first mindset when developing webapps using grid, flexbox and media query's (and
                             the occasional js User Agent device identification).
                         </h1>
-
-                        <h2 class="header h2"> I have been developing web technologies for over 14 years, I love to get
+<h2 class="header h2"> I have been developing web technologies for over 14 years, I love to get
                             my hands dirty with new tech and never afraid of a challenge. </h2>
-                        <h2 class="header h2"> Some of the many technologies I work with daily are: Javascript, Shell,
+<h2 class="header h2"> Some of the many technologies I work with daily are: Javascript, Shell,
                             Python, PHP, REACT, CSS, HTML,
                             Responsive UI,
                             Node.js, Wordpress, Linux, SQL, git and more...</h2>
-                        <!-- <h2 class="header h2 click link" onClick="navigateTo('https://github.com/StarShows/', true)">
+<!-- <h2 class="header h2 click link" onClick="navigateTo('https://github.com/StarShows/', true)">
                             Click here to checkout my GitHub site with some of the public code project I have available for display. -- there are more private repository's userI can show upon request. </h2> -->
-                        <h2 class="header h2"> Fun Fact - The stars change position every time you reload the page.
+<h2 class="header h2"> Fun Fact - The stars change position every time you reload the page.
                             - WOW, A developer that can write Javascript HTML CSS and be creative! so cool!</h2>
-                        <section class="content">
-                            <div class="portfolio_item" tabindex="1">
-                                <p>Checkout my GitHub account: <div class="button" title="Avi Tannenbaum's Github Account"
-                                    onClick="navigateTo('https://github.com/StarShows/', true)">Click here to checkout
+<section class="content">
+<div class="portfolio_item" tabindex="1">
+<p>Checkout my GitHub account: <div class="button" onclick="navigateTo('https://github.com/StarShows/', true)" title="Avi Tannenbaum's Github Account">Click here to checkout
                                     my Github Account in a new window</div>
-                                </p>
-                            </div>
-                            <div class="portfolio_item" tabindex="2">
-                                <p class="paragraph"> Also, here's a formal copy of my most up to date Resume ( yawn..
+</p>
+</div>
+<div class="portfolio_item" tabindex="2">
+<p class="paragraph"> Also, here's a formal copy of my most up to date Resume ( yawn..
                                     boring..) </p>
-                                <div class="button link click" title="Alex's Tannenbaum's CV"
-                                    onClick="navigateTo('https://drive.google.com/file/d/1S2PinHd0Ds6Nmt-EN8i-kqQSBY33JtqD/view?usp=sharing', true)">
+<div class="button link click" onclick="navigateTo('https://drive.google.com/file/d/1S2PinHd0Ds6Nmt-EN8i-kqQSBY33JtqD/view?usp=sharing', true)" title="Alex's Tannenbaum's CV">
                                     Click here to open a PDF version of my resume in a new window</div>
-                            </div>
-                            <div class="portfolio_item" tabindex="3">
-                                <p class="paragraph">Want to see my resume as a mobile friendly resposinve webpage? </p>
-                                <div class="button link click" title="Alex's Tannenbaum's CV but in HTML"
-                                    onClick="navigateTo('https://alext.io/public/files/Alexander%20Tannenbaum%20Resume%202024%20Aug.html', true)">
+</div>
+<div class="portfolio_item" tabindex="3">
+<p class="paragraph">Want to see my resume as a mobile friendly resposinve webpage? </p>
+<div class="button link click" onclick="navigateTo('https://alext.io/public/files/Alexander%20Tannenbaum%20Resume%202024%20Aug.html', true)" title="Alex's Tannenbaum's CV but in HTML">
                                     Click here to open a HTML rendered version of my resume in a new window</div>
-                            </div>
-                            <div class="portfolio_item" tabindex="4">
-                                <p class="paragraph"> Click here to link up with me on linked in:
-                                <div onClick="navigateTo('https://www.linkedin.com/in/alexandertannenbaum//', true)"
-                                    class="button link click" tabindex="4"
-                                    title="Click here to go to Alex (Avi) Tannenbaum's Linkedin profile" accesskey="l">
+</div>
+<div class="portfolio_item" tabindex="4">
+<p class="paragraph"> Click here to link up with me on linked in:
+                                <div accesskey="l" class="button link click" onclick="navigateTo('https://www.linkedin.com/in/alexandertannenbaum//', true)" tabindex="4" title="Click here to go to Alex (Avi) Tannenbaum's Linkedin profile">
                                     Click here to message me through my LinkedIn profile</div>
-                                </p>
-                            </div>
-                            <section class="portfolio">
-                                <!-- Will insert portfolio item here later -->
-                            </section>
-                        </section>
-                        <section class="footer">
-                            <p class="paragraph_footer">© Alex Tannenbaum - 2023. This site was built from scratch with
+</p>
+</div>
+<section class="portfolio">
+<!-- Will insert portfolio item here later -->
+</section>
+</section>
+<section class="footer">
+<p class="paragraph_footer">© Alex Tannenbaum - 2023. This site was built from scratch with
                                 pure
                                 html,
                                 scss and
                                 JavascriptES6 hosted using surge.sh and pushed from my vscode or git actions, I built this from scratch before AI was publically a thing However I'm not scared to use it these days to get more done faster... . to checkout
-                                this projects <span
-                                    onClick="navigateTo('https://github.com/StarShows/avitannenbaum.com', true)"
-                                    class="link">repository</span> is a subdirectory with a new React.js / Express.js /
+                                this projects <span class="link" onclick="navigateTo('https://github.com/StarShows/avitannenbaum.com', true)">repository</span> is a subdirectory with a new React.js / Express.js /
                                 Node.js it's
                                 under construction on my personal Linode living on a MERN stack project.
                             </p>
-                            <p class="hint">Hint to recruiters: Inspect this page for a secret message!</p>
-                            <h3 class="header">Thanks for visiting my site!</h3>
-                        </section>
-                        <!-- For faster loading, keep the script in the bottom-->
-                    </section>
+<p class="hint">Hint to recruiters: Inspect this page for a secret message!</p>
+<h3 class="header">Thanks for visiting my site!</h3>
+</section>
+<!-- For faster loading, keep the script in the bottom-->
+</section>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<!-- Original Analytics ID: UA-42339063-2. Disabled in standalone archive. -->
+<script>
+/* Restored from old_web_version/web/js/scripts.js. */
+(function () {
+  'use strict';
+  // The original button markup calls navigateTo from inline click handlers.
+  // The historical scripts.js also called a missing Website_Name element and
+  // contained a stray non-JavaScript character, preventing it from parsing.
+  window.navigateTo = function (url, newPage) {
+    if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return;
+    if (newPage) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      window.location.assign(url);
+    }
+  };
+})();
+</script>
+<script>
+/* Restored from old_web_version/web/js/starBackground.js (2023).
+   Original count: 100, white 1px stars, repositioned on every page reload.
+   Viewport coordinates, layer ordering and resize behavior are corrected. */
+(function () {
+  'use strict';
+  const numStars = 100;
+  const board = document.getElementById('sky');
+  if (!board) return;
 
-                    <!-- Global site tag (gtag.js) - Google Analytics -->
-                    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-42339063-2"></script>
-                    <script src="js/scripts.js"></script>
-                    <script src="js/starBackground.js"></script>
-                </section>
-            </div>
-        </div>
-    </div>
+  const sky = document.createElement('section');
+  sky.className = 'sky';
+  sky.setAttribute('aria-hidden', 'true');
+  sky.setAttribute('data-restored-starfield', '2023-original');
+
+  function generateStars() {
+    const width = Math.max(document.documentElement.clientWidth, window.innerWidth || 0, 1);
+    const height = Math.max(document.documentElement.clientHeight, window.innerHeight || 0, 1);
+    const stars = document.createDocumentFragment();
+    sky.replaceChildren();
+    for (let i = 0; i < numStars; i += 1) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.floor(Math.random() * width) + 'px';
+      star.style.top = Math.floor(Math.random() * height) + 'px';
+      stars.appendChild(star);
+    }
+    sky.appendChild(stars);
+  }
+
+  // Paint the star layer over the classic gradient, behind actual content.
+  board.prepend(sky);
+  generateStars();
+  // Reflow the starfield when rotating a phone or resizing the browser.
+  let viewportWidth = window.innerWidth;
+  let viewportHeight = window.innerHeight;
+  window.addEventListener('resize', function () {
+    if (window.innerWidth !== viewportWidth || window.innerHeight !== viewportHeight) {
+      viewportWidth = window.innerWidth;
+      viewportHeight = window.innerHeight;
+      generateStars();
+    }
+  }, { passive: true });
+})();
+</script>
+</section>
+</div>
+</div>
+</div>
 </body>
-
 </html>

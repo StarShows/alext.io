@@ -195,9 +195,13 @@ jobs:
           root = Path(sys.argv[1])
           html = (root / "legacy-old.html").read_text(encoding="utf-8")
           assert "Alex T - Sr. Full Stack Software Engineer" in html, "Original website title missing"
-          assert '<base href="/">' in html, "Root asset base missing"
-          assert "/public/files/old.css?v=legacy-20261104" in html, "Archived CSS not linked"
-          assert "/public/files/old-compat.css?v=legacy-20261104" in html, "2025 compatibility CSS not linked"
+          assert "<style>" in html and "</style>" in html, "Inline archive CSS missing"
+          assert html.count("<style>") == 1, "Unexpected archive stylesheets"
+          assert "<script src=" not in html and '<link rel="stylesheet"' not in html, "External archive dependencies remain"
+          assert "const numStars = 100" in html and "board.prepend(sky)" in html, "100-star inline background missing"
+          assert "window.navigateTo = function" in html, "Inline navigation missing"
+          assert "https://alext.io/public/files/images/avitannenbaum.jpeg" in html, "Profile image URL missing"
+          assert "https://raw.githubusercontent.com/StarShows/avitannenbaum.com/main/" in html, "Profile image fallback missing"
           css = (root / "legacy-old.css").read_text(encoding="utf-8")
           compat = (root / "legacy-old-compat.css").read_text(encoding="utf-8")
           for rule in (".container .box_yellow {", ".container .box_yellow .box_yellowa {"):

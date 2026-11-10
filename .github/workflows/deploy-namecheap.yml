@@ -1,0 +1,299 @@
+name: Deploy alext.io to Namecheap
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - js/**
+      - images/**
+      - fonts/**
+      - public/css/**
+      - public/files/**
+      - public/fonts/**
+      - public/images/**
+      - scss/**
+      - package.json
+      - package-lock.json
+      - bin/build-css
+      - scripts/deploy/**
+      - tests/**
+      - .github/workflows/deploy-namecheap.yml
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Deploy current main, or restore the most recent release'
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+        required: true
+      rollback_id:
+        description: 'For rollback: deployment run ID (e.g. 123456789-1)'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alext-io-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build release without production secrets
+    if: github.event_name == 'push' || inputs.operation == 'deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout without credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Generate browser and social media images
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/brand-venv"
+          "$RUNNER_TEMP/brand-venv/bin/python" -m pip install --disable-pip-version-check --no-deps --only-binary=:all: Pillow==11.3.0
+          "$RUNNER_TEMP/brand-venv/bin/python" scripts/deploy/generate_brand_assets.py
+      - name: Capture current project websites for local fallback previews
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/brand-venv/bin/python" -m pip install --disable-pip-version-check --only-binary=:all: playwright==1.56.0
+          "$RUNNER_TEMP/brand-venv/bin/python" scripts/deploy/generate_portal_previews.py --mode capture
+      - name: Build and test release
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build-css
+          bash -n scripts/deploy/remote_deploy.sh scripts/deploy/remote_rollback.sh
+          while IFS= read -r -d '' file; do node --check "$file"; done < <(git ls-files -z -- '*.js')
+          "$RUNNER_TEMP/brand-venv/bin/python" -m unittest discover -s tests -p 'test_*.py' -v
+          python3 scripts/deploy/package_site.py --out "$RUNNER_TEMP/site-release.tar.gz"
+          cd "$RUNNER_TEMP"
+          sha256sum site-release.tar.gz > site-release.tar.gz.sha256
+      - name: Upload immutable release artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: namecheap-site-release
+          path: |
+            ${{ runner.temp }}/site-release.tar.gz
+            ${{ runner.temp }}/site-release.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  deploy:
+    name: Deploy approved release
+    needs: build
+    if: needs.build.result == 'success' && (github.event_name == 'workflow_dispatch' || vars.NC_AUTO_DEPLOY == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment:
+      name: production
+      url: https://alext.io
+    env:
+      SSH_HOST: ${{ vars.NC_SSH_HOST }}
+      SSH_USER: ${{ vars.NC_SSH_USER }}
+      SSH_PORT: ${{ vars.NC_SSH_PORT }}
+      WEB_ROOT: ${{ vars.NC_WEB_ROOT }}
+      RELEASE_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout deployment scripts
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Retrieve release from this run
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
+        with:
+          name: namecheap-site-release
+          path: ${{ runner.temp }}/release
+      - name: Verify configuration and archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          (( 10#$SSH_PORT >= 1 && 10#$SSH_PORT <= 65535 ))
+          [[ "$WEB_ROOT" == /home/realtorstudio/alext.io ]]
+          (cd "$RUNNER_TEMP/release" && sha256sum -c site-release.tar.gz.sha256)
+      - name: Install pinned SSH host key and deploy key
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.NC_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.NC_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || exit 1
+          umask 077
+          mkdir -p "$RUNNER_TEMP/ssh"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/ssh/id_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/ssh/id_deploy" "$RUNNER_TEMP/ssh/known_hosts"
+      - name: Deploy with atomic homepage replacement and backups
+        id: ship
+        shell: bash
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(-i "$RUNNER_TEMP/ssh/id_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no)
+          SCP_OPTS=(-i "$RUNNER_TEMP/ssh/id_deploy" -P "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no)
+          remote="$SSH_USER@$SSH_HOST"
+          ssh "${SSH_OPTS[@]}" "$remote" "test -d '$WEB_ROOT' && test -w '$WEB_ROOT' && test \"\$HOME/alext.io\" = '$WEB_ROOT' && umask 077 && mkdir -p \"\$HOME/.alext-deploy/staging/$RELEASE_ID\""
+          scp "${SCP_OPTS[@]}" "$RUNNER_TEMP/release/site-release.tar.gz" "$remote:.alext-deploy/staging/$RELEASE_ID/site.tar.gz"
+          ssh -T "${SSH_OPTS[@]}" "$remote" bash -s -- "$RELEASE_ID" < scripts/deploy/remote_deploy.sh
+      - name: Check public HTTPS homepage
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 https://alext.io/ -o "$RUNNER_TEMP/alext-home.html"
+          grep -qi '</html>' "$RUNNER_TEMP/alext-home.html"
+      - name: Verify favicon and social preview URLs over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for asset in favicon.ico images/favicon.svg images/favicon-32.png images/apple-touch-icon.png images/social-preview.jpg; do
+            curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/$asset?v=20261104" -o "$RUNNER_TEMP/${asset##*/}"
+          done
+          python3 - "$RUNNER_TEMP" <<'PY'
+          from pathlib import Path
+          import sys
+          root = Path(sys.argv[1])
+          signatures = {
+              "favicon.ico": b"\x00\x00\x01\x00",
+              "favicon-32.png": b"\x89PNG\r\n\x1a\n",
+              "apple-touch-icon.png": b"\x89PNG\r\n\x1a\n",
+              "social-preview.jpg": b"\xff\xd8\xff",
+          }
+          for name, signature in signatures.items():
+              asset = (root / name).read_bytes()
+              assert asset.startswith(signature), f"Invalid {name} payload"
+              assert len(asset) > 100, f"Empty {name} payload"
+          svg = (root / "favicon.svg").read_text(encoding="utf-8")
+          assert "<svg" in svg and "AT monogram" in svg, "Invalid SVG favicon"
+          PY
+      - name: Verify restored original portfolio and legacy assets over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/public/files/old.html?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-old.html"
+          for asset in public/files/old.css public/files/old-compat.css js/scripts.js js/starBackground.js images/avitannenbaum.jpeg; do
+            curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/$asset?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-${asset##*/}"
+          done
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/public/fonts/Franklin%20Gothic%20Condensed.woff?v=$GITHUB_SHA" -o "$RUNNER_TEMP/legacy-font.woff"
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import sys
+          from pathlib import Path
+          root = Path(sys.argv[1])
+          html = (root / "legacy-old.html").read_text(encoding="utf-8")
+          assert "Alex T - Sr. Full Stack Software Engineer" in html, "Original website title missing"
+          assert "<style>" in html and "</style>" in html, "Inline archive CSS missing"
+          assert html.count("<style>") == 1, "Unexpected archive stylesheets"
+          assert "<script src=" not in html and '<link rel="stylesheet"' not in html, "External archive dependencies remain"
+          assert "const numStars = 100" in html and "board.prepend(sky)" in html, "100-star inline background missing"
+          assert "window.navigateTo = function" in html, "Inline navigation missing"
+          assert "https://alext.io/public/files/images/avitannenbaum.jpeg" in html, "Profile image URL missing"
+          assert "https://raw.githubusercontent.com/StarShows/avitannenbaum.com/main/" in html, "Profile image fallback missing"
+          css = (root / "legacy-old.css").read_text(encoding="utf-8")
+          compat = (root / "legacy-old-compat.css").read_text(encoding="utf-8")
+          for rule in (".container .box_yellow {", ".container .box_yellow .box_yellowa {"):
+              assert rule in compat, f"Missing 2025 archive style: {rule}"
+          for rule in (".container .header {", ".container .header.h2 {", ".container .header.mobile_only {"):
+              assert rule in css, f"Missing original legacy style: {rule}"
+          font = (root / "legacy-font.woff").read_bytes()
+          assert font.startswith(bytes.fromhex("774f4646")) and len(font) > 1000, "Original WOFF font missing or invalid"
+          for asset in ("legacy-scripts.js", "legacy-starBackground.js"):
+              assert (root / asset).stat().st_size > 500, f"Empty original-site asset: {asset}"
+          portrait = (root / "legacy-avitannenbaum.jpeg").read_bytes()
+          assert portrait.startswith(bytes.fromhex("ffd8ff")) and len(portrait) > 1000, "Invalid original portrait"
+          print("Historic archive, styling, script and portrait verified via HTTPS")
+          PY
+      - name: Verify same-origin project previews over HTTPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          for slug in dinnerradar learning-lab realtor-studio creamed chopt resume alext dinner; do
+            url="https://alext.io/images/previews/$slug.webp?v=$GITHUB_SHA"
+            if ! curl --fail --location --silent --show-error --retry 2 --max-time 25 "$url" -o "$RUNNER_TEMP/preview-$slug.webp"; then
+              echo "::error::Public screenshot $slug could not be fetched from $url. Verify images/previews is mode 755 and the file is mode 644." >&2
+              exit 1
+            fi
+          done
+          curl --fail --location --silent --show-error --retry 2 --max-time 25 "https://alext.io/images/previews/capture-status.json?v=$GITHUB_SHA" -o "$RUNNER_TEMP/capture-status.json"
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          directory = Path(sys.argv[1])
+          status = json.loads((directory / "capture-status.json").read_text())
+          slugs = ("dinnerradar", "learning-lab", "realtor-studio", "creamed", "chopt", "resume", "alext", "dinner")
+          assert set(status["items"]) == set(slugs), "Capture status missing sites"
+          for slug in slugs:
+              image = (directory / ("preview-" + slug + ".webp")).read_bytes()
+              assert len(image) > 5000, "Empty preview: " + slug
+              assert image[:4] == b"RIFF" and image[8:12] == b"WEBP", "Invalid WebP: " + slug
+              assert status["items"][slug]["status"] in ("captured", "unavailable")
+          print("Verified locally served preview images and capture statuses")
+          PY
+      - name: Auto-rollback if HTTPS smoke test fails
+        if: failure() && steps.ship.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -T -i "$RUNNER_TEMP/ssh/id_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no "$SSH_USER@$SSH_HOST" bash -s -- "$RELEASE_ID" < scripts/deploy/remote_rollback.sh
+      - name: Delete temporary SSH credentials
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/ssh"
+
+  rollback:
+    name: Restore latest release backup
+    if: github.event_name == 'workflow_dispatch' && inputs.operation == 'rollback'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment:
+      name: production
+      url: https://alext.io
+    env:
+      SSH_HOST: ${{ vars.NC_SSH_HOST }}
+      SSH_USER: ${{ vars.NC_SSH_USER }}
+      SSH_PORT: ${{ vars.NC_SSH_PORT }}
+      WEB_ROOT: ${{ vars.NC_WEB_ROOT }}
+      ROLLBACK_ID: ${{ inputs.rollback_id }}
+    steps:
+      - name: Checkout rollback script
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Validate rollback request
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ROLLBACK_ID" =~ ^[0-9]+-[0-9]+$ ]]
+          [[ "$SSH_HOST" =~ ^[a-zA-Z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]+$ ]]
+          (( 10#$SSH_PORT >= 1 && 10#$SSH_PORT <= 65535 ))
+          [[ "$WEB_ROOT" == /home/realtorstudio/alext.io ]]
+      - name: Restore files over verified SSH
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.NC_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.NC_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || exit 1
+          umask 077
+          mkdir -p "$RUNNER_TEMP/ssh"
+          trap 'rm -rf -- "$RUNNER_TEMP/ssh"' EXIT
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/ssh/id_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/ssh/id_deploy" "$RUNNER_TEMP/ssh/known_hosts"
+          ssh -T -i "$RUNNER_TEMP/ssh/id_deploy" -p "$SSH_PORT" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/ssh/known_hosts" -o BatchMode=yes -o PasswordAuthentication=no -o ForwardAgent=no "$SSH_USER@$SSH_HOST" bash -s -- "$ROLLBACK_ID" < scripts/deploy/remote_rollback.sh

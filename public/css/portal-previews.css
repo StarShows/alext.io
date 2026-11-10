@@ -1,0 +1,90 @@
+/* Same-origin project screenshots: present even when sites reject iframe embeds. */
+.portal-frame { isolation:isolate; background:#050611; }
+.portal-snapshot-shell {
+  position:absolute; inset:0; z-index:1; overflow:hidden;
+  background:radial-gradient(circle at 75% 20%,rgba(97,243,255,.13),transparent 45%),#050611;
+}
+.portal-snapshot {
+  display:block; width:100%; height:100%; object-fit:cover; object-position:center 35%;
+  transform:translate3d(0,0,0) scale(1.14); transform-origin:center;
+  filter:saturate(.87) contrast(1.03) brightness(.9); will-change:transform;
+  transition:filter .45s cubic-bezier(.16,1,.3,1);
+}
+.portal-card:hover .portal-snapshot { filter:saturate(1.04) contrast(1.06) brightness(.98); }
+.portal-snapshot-shell::after {
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,7,19,.21),transparent 45%,rgba(4,7,19,.66));
+}
+.portal-preview-badge {
+  position:absolute; z-index:6; left:13px; top:12px;
+  max-width:calc(100% - 26px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  border:1px solid rgba(255,255,255,.21); border-radius:999px;
+  background:rgba(4,7,21,.83); backdrop-filter:blur(12px);
+  padding:7px 11px; color:#dffcff;
+  font:700 10px Consolas,Menlo,monospace; letter-spacing:.03em;
+  box-shadow:0 8px 30px rgba(0,0,0,.22);
+}
+.portal-preview-badge::before {
+  content:""; display:inline-block; vertical-align:middle; width:6px; height:6px;
+  background:#61f3ff; border-radius:100%; margin-right:7px;
+  box-shadow:0 0 12px rgba(97,243,255,.9);
+}
+.portal-image-error {
+  position:absolute; inset:0; z-index:2;
+  display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+  padding:32px; color:#e7faff; background:#080e24;
+  font-weight:800; letter-spacing:-.02em;
+}
+.portal-image-error small { margin-top:8px; font-weight:400; color:#a8bed8; font-size:12px; }
+.portal-iframe {
+  position:absolute!important; inset:0!important; z-index:4;
+  width:100%!important; height:100%!important; transform:none!important;
+  opacity:0; pointer-events:none;
+  filter:none!important; border:0;
+  transition:opacity .38s ease!important;
+}
+.portal-card:hover .portal-iframe { transform:none!important; filter:none!important; }
+.portal-frame.is-live .portal-iframe { opacity:1; pointer-events:auto; }
+.portal-frame.is-loading-live .portal-iframe { opacity:0; pointer-events:none; }
+.portal-frame .portal-scanline {
+  z-index:3; opacity:.25; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(97,243,255,.07),transparent),repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 5px);
+}
+.portal-frame.is-live .portal-scanline { opacity:0; }
+.portal-live-controls {
+  position:absolute; right:12px; bottom:12px; z-index:7;
+  display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end;
+  max-width:calc(100% - 24px);
+}
+.portal-view-button {
+  position:relative; display:inline-flex; align-items:center; justify-content:center;
+  gap:5px; min-height:33px; padding:8px 12px;
+  border:1px solid rgba(97,243,255,.45); border-radius:999px;
+  background:rgba(4,11,30,.9); color:#e6fdff;
+  font:700 10px Consolas,Menlo,monospace; white-space:nowrap;
+  cursor:pointer; backdrop-filter:blur(12px);
+  box-shadow:0 12px 36px rgba(0,0,0,.35);
+  transition:background .2s,border-color .2s,transform .25s cubic-bezier(.16,1,.3,1);
+}
+.portal-view-button:hover,.portal-view-button:focus-visible {
+  background:rgba(97,243,255,.24); border-color:#61f3ff;
+  transform:translateY(-2px); outline:none;
+}
+.portal-view-button:focus-visible { outline:2px solid #61f3ff; outline-offset:3px; }
+.portal-view-button[disabled] { opacity:.65; cursor:wait; }
+.portal-view-button[hidden], .portal-image-error[hidden], .portal-iframe[hidden],
+.portal-snapshot[hidden] { display:none!important; }
+@media(max-width:520px) {
+  .portal-preview-badge { font-size:9px; max-width:calc(100% - 24px); }
+  .portal-view-button { padding:8px 10px; }
+  .portal-live-controls { right:9px; bottom:9px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .portal-snapshot { transform:none!important; transition:none!important; will-change:auto; }
+  .portal-iframe,.portal-view-button,.portal-scanline { transition:none!important;animation:none!important; }
+}
+
+/* Preserve left-aligned hero typography in compact screenshot frames. */
+.portal-frame[data-snapshot-key="realtor-studio"] .portal-snapshot,
+.portal-frame[data-snapshot-key="creamed"] .portal-snapshot,
+.portal-frame[data-snapshot-key="alext"] .portal-snapshot { transform-origin:left center; }

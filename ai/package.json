@@ -1,0 +1,31 @@
+{
+  "name": "alext-local-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.20.0 <25"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --max-http-header-size=8192 dist/server.js",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:browser": "node --test test/browser/*.test.mjs",
+    "lint": "node scripts/lint.mjs",
+    "format": "prettier --write src test widget scripts knowledge docs *.json",
+    "format:check": "prettier --check src test widget scripts knowledge docs *.json",
+    "build:site": "node scripts/build-site.mjs",
+    "evaluate": "node scripts/evaluate.mjs",
+    "benchmark": "node scripts/benchmark.mjs"
+  },
+  "dependencies": {
+    "fastify": "5.12.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.6",
+    "typescript": "5.9.3",
+    "prettier": "3.6.2",
+    "playwright": "1.64.0",
+    "axe-core": "4.11.0"
+  }
+}

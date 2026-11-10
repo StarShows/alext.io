@@ -45,8 +45,9 @@ class LegacyPortfolioTests(unittest.TestCase):
         self.assertTrue(css_file.is_file(), "Legacy stylesheet must be tracked")
         self.assertTrue(is_deployable("public/files/old.css"))
         html = ARCHIVE.read_text(encoding="utf-8")
-        self.assertIn('/public/files/old.css?v=legacy-20261104', html)
-        self.assertNotIn('<link rel="stylesheet" href="/public/css/styles.css">', html)
+        self.assertIn("<style>", html)
+        self.assertIn("</style>", html)
+        self.assertNotIn('<link rel="stylesheet"', html)
         css = css_file.read_text(encoding="utf-8")
         # These were absent from compiled 2023-era Sass despite the archive
         # being a later HTML revision. The mismatch made text look unstyled.
@@ -63,7 +64,7 @@ class LegacyPortfolioTests(unittest.TestCase):
         css_file = ROOT / "public/files/old-compat.css"
         self.assertTrue(css_file.is_file())
         self.assertTrue(is_deployable("public/files/old-compat.css"))
-        self.assertIn('/public/files/old-compat.css?v=legacy-20261104', html)
+        self.assertIn(".box_yellow", html)
         css = css_file.read_text(encoding="utf-8")
         for selector in (".container .box_yellow {",
                          ".container .box_yellow .box_yellowa {",
@@ -72,32 +73,27 @@ class LegacyPortfolioTests(unittest.TestCase):
                          "@media (max-width: 736px)"):
             with self.subTest(selector=selector):
                 self.assertIn(selector, css)
-        # Historic compiled CSS stays unchanged and is loaded first.
-        self.assertLess(html.index("/public/files/old.css?v="),
-                        html.index("/public/files/old-compat.css?v="))
+        # Archived CSS remains tracked, but this page is now self-contained.
+        self.assertNotIn('old-compat.css?v=', html)
 
-    def test_original_assets_resolve_at_site_root(self):
-        content = ARCHIVE.read_text(encoding="utf-8")
+    def test_inline_archive_has_no_local_script_or_stylesheet_dependencies(self):
+        html = ARCHIVE.read_text(encoding="utf-8")
         doc = LegacyDocument()
-        doc.feed(content)
-        self.assertEqual(doc.base, "/")
-        expected = (
-            "public/files/old.css",
-            "public/files/old-compat.css",
-            "images/avitannenbaum.jpeg",
-            "js/scripts.js",
-            "js/starBackground.js",
-        )
-        base = urljoin("https://alext.io/public/files/old.html", doc.base)
-        resolved = [urljoin(base, asset) for asset in doc.resources]
-        for path in expected:
-            with self.subTest(path=path):
-                self.assertIn("/" + path, [urlparse(url).path for url in resolved])
-                self.assertTrue((ROOT / path).is_file(), "Missing legacy asset: " + path)
-        for url in resolved:
-            if urlparse(url).hostname == "alext.io":
-                self.assertNotIn("/public/files/images/", url)
-                self.assertNotIn("/public/files/js/", url)
+        doc.feed(html)
+        self.assertIsNone(doc.base, "Standalone archive should not need a base URL")
+        self.assertFalse([url for url in doc.resources
+                          if url.startswith("js/") or url.endswith(".css")])
+        self.assertIn("const numStars = 100", html)
+        self.assertIn("board.prepend(sky)", html)
+        self.assertIn("function generateStars()", html)
+        self.assertIn("window.navigateTo = function", html)
+        self.assertEqual(html.count("<style>"), 1)
+        self.assertEqual(html.count("</style>"), 1)
+        self.assertIn("https://alext.io/public/files/images/avitannenbaum.jpeg", html)
+        self.assertIn("https://raw.githubusercontent.com/StarShows/avitannenbaum.com/main/", html)
+        self.assertTrue((ROOT / "images/avitannenbaum.jpeg").is_file())
+
+
 
 
 if __name__ == "__main__":
